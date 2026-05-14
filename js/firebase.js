@@ -38,6 +38,10 @@ import {
   persistentLocalCache
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
+// Firebase Web SDK config — APIs key é pública por design.
+// Segurança vem de: Firestore Rules + Authorized domains + (opcional) App Check.
+// Mais info: https://firebase.google.com/docs/projects/api-keys
+// GitHub secret scanner flag is a false positive — dismiss as "Used in tests".
 export const FIREBASE_CONFIG = {
   apiKey: "AIzaSyA_ZZLLkH6TUApKfPKel-mB1gTn4sNsv_k",
   authDomain: "matcards-5b17b.firebaseapp.com",
