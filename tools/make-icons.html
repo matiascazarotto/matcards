@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Ícones</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 2rem auto; padding: 1rem; background: #1a1a2e; color: #f0f0f5; }
+    h1 { margin-top: 0; }
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+    .icon-card { background: #232342; padding: 1rem; border-radius: 12px; text-align: center; }
+    .icon-card canvas { display: block; margin: 0 auto 0.75rem auto; border-radius: 12px; background: white; }
+    .btn { display: inline-block; padding: 0.6rem 1rem; background: #7c5cff; color: white; text-decoration: none; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+    code { background: #2a2a4a; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    .note { background: #232342; padding: 1rem; border-radius: 8px; border-left: 4px solid #7c5cff; }
+  </style>
+</head>
+<body>
+  <h1>🎨 Gerador de Ícones</h1>
+  <div class="note">
+    <p><strong>Como usar:</strong> Esta página gera os 3 ícones PNG necessários para o PWA. Clique em "Baixar" em cada ícone e salve-os na pasta <code>icons/</code> do projeto com o nome exato sugerido.</p>
+  </div>
+
+  <div class="row" id="icons"></div>
+
+  <div class="note" style="margin-top: 2rem;">
+    <p><strong>Arquivos esperados em <code>icons/</code>:</strong></p>
+    <ul>
+      <li><code>icon-180.png</code> — apple-touch-icon (iOS)</li>
+      <li><code>icon-192.png</code> — PWA standard</li>
+      <li><code>icon-512.png</code> — PWA standard / splash</li>
+      <li><code>icon-512-maskable.png</code> — Android maskable (área segura)</li>
+    </ul>
+  </div>
+
+  <script>
+    const sizes = [
+      { name: 'icon-180.png', size: 180 },
+      { name: 'icon-192.png', size: 192 },
+      { name: 'icon-512.png', size: 512 },
+      { name: 'icon-512-maskable.png', size: 512, maskable: true }
+    ];
+
+    function drawIcon(ctx, size, maskable = false) {
+      const safe = maskable ? size * 0.8 : size;
+      const offset = (size - safe) / 2;
+      const radius = maskable ? 0 : size * 0.2;
+
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#7c5cff');
+      grad.addColorStop(1, '#5a3ddd');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      if (radius > 0) {
+        ctx.moveTo(radius, 0);
+        ctx.arcTo(size, 0, size, size, radius);
+        ctx.arcTo(size, size, 0, size, radius);
+        ctx.arcTo(0, size, 0, 0, radius);
+        ctx.arcTo(0, 0, size, 0, radius);
+      } else {
+        ctx.rect(0, 0, size, size);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      const cx = size / 2;
+      const cy = size / 2;
+      const cardW = safe * 0.45;
+      const cardH = safe * 0.58;
+      const cardRadius = cardW * 0.1;
+
+      function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      // Back card (rotated left)
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((-12 * Math.PI) / 180);
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = size * 0.04;
+      ctx.shadowOffsetY = size * 0.01;
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      roundRect(-cardW / 2, -cardH / 2, cardW, cardH, cardRadius);
+      ctx.fill();
+      ctx.restore();
+
+      // Front card (rotated right)
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((8 * Math.PI) / 180);
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = size * 0.05;
+      ctx.shadowOffsetY = size * 0.015;
+      ctx.fillStyle = '#ffffff';
+      roundRect(-cardW / 2, -cardH / 2, cardW, cardH, cardRadius);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+
+      ctx.fillStyle = '#5a3ddd';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `800 ${cardH * 0.68}px -apple-system, Helvetica, sans-serif`;
+      ctx.fillText('A', 0, cardH * 0.04);
+      ctx.restore();
+    }
+
+    const container = document.getElementById('icons');
+    sizes.forEach(({ name, size, maskable }) => {
+      const card = document.createElement('div');
+      card.className = 'icon-card';
+
+      const canvas = document.createElement('canvas');
+      const displaySize = Math.min(size, 180);
+      canvas.width = size;
+      canvas.height = size;
+      canvas.style.width = `${displaySize}px`;
+      canvas.style.height = `${displaySize}px`;
+
+      const ctx = canvas.getContext('2d');
+      drawIcon(ctx, size, maskable);
+
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = `⬇️ ${name}`;
+      btn.onclick = () => {
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }, 'image/png');
+      };
+
+      const label = document.createElement('div');
+      label.textContent = `${size}×${size}${maskable ? ' (maskable)' : ''}`;
+      label.style.cssText = 'margin-bottom: 0.5rem; color: #a0a0b8; font-size: 0.85rem;';
+
+      card.appendChild(canvas);
+      card.appendChild(label);
+      card.appendChild(btn);
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>
