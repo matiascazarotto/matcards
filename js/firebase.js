@@ -39,16 +39,17 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 export const FIREBASE_CONFIG = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME.firebaseapp.com",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME.appspot.com",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyA_ZZLLkH6TUApKfPKel-mB1gTn4sNsv_k",
+  authDomain: "matcards-5b17b.firebaseapp.com",
+  projectId: "matcards-5b17b",
+  storageBucket: "matcards-5b17b.firebasestorage.app",
+  messagingSenderId: "667336213127",
+  appId: "1:667336213127:web:a28cc19dddc5d48e6d2e22",
+  measurementId: "G-T4G1CPWVX4"
 };
 
 export function isConfigured() {
-  return FIREBASE_CONFIG.apiKey !== 'REPLACE_ME' && !!FIREBASE_CONFIG.projectId;
+  return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'REPLACE_ME' && !!FIREBASE_CONFIG.projectId;
 }
 
 let _app = null;
