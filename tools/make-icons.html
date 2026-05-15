@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Gerador de Ícones</title>
+  <title>matcards · Gerador de ícones</title>
   <style>
     body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 2rem auto; padding: 1rem; background: #1a1a2e; color: #f0f0f5; }
     h1 { margin-top: 0; }
@@ -15,15 +15,15 @@
   </style>
 </head>
 <body>
-  <h1>🎨 Gerador de Ícones</h1>
+  <h1>Gerador de ícones</h1>
   <div class="note">
-    <p><strong>Como usar:</strong> Esta página gera os 3 ícones PNG necessários para o PWA. Clique em "Baixar" em cada ícone e salve-os na pasta <code>icons/</code> do projeto com o nome exato sugerido.</p>
+    <p>Gera os 4 PNGs do PWA via Canvas. Baixe cada um e salve em <code>icons/</code> com o nome indicado.</p>
   </div>
 
   <div class="row" id="icons"></div>
 
   <div class="note" style="margin-top: 2rem;">
-    <p><strong>Arquivos esperados em <code>icons/</code>:</strong></p>
+    <p>Arquivos esperados em <code>icons/</code>:</p>
     <ul>
       <li><code>icon-180.png</code> — apple-touch-icon (iOS)</li>
       <li><code>icon-192.png</code> — PWA standard</li>
@@ -127,7 +127,7 @@
 
       const btn = document.createElement('button');
       btn.className = 'btn';
-      btn.textContent = `⬇️ ${name}`;
+      btn.textContent = `Baixar ${name}`;
       btn.onclick = () => {
         canvas.toBlob((blob) => {
           const url = URL.createObjectURL(blob);

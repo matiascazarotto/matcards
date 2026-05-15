@@ -27,34 +27,34 @@ export async function renderSettings(app) {
     const cloudLastSyncError = await db.getSetting('cloudLastSyncError');
 
     container.appendChild(el('header', { class: 'app-header' },
-      el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Voltar'),
+      el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Início'),
       el('h1', {}, 'Configurações')
     ));
 
     container.appendChild(el('div', { class: 'settings-section' },
       el('h3', {}, 'Nível'),
       el('div', { class: 'settings-row' },
-        el('label', {}, 'CEFR atual'),
+        el('label', {}, 'CEFR'),
         el('span', {}, String(cefrLevel).toUpperCase())
       ),
       lextaleScore != null ? el('div', { class: 'settings-row' },
-        el('label', {}, 'LexTALE score'),
+        el('label', {}, 'Score LexTALE'),
         el('span', {}, `${Math.round(lextaleScore)}%`)
       ) : null,
-      el('a', { href: '#/placement', class: 'btn btn-block', style: { marginTop: '0.5rem' } }, 'Refazer teste de nivelamento')
+      el('a', { href: '#/placement', class: 'btn btn-block', style: { marginTop: '0.5rem' } }, 'Refazer teste')
     ));
 
     container.appendChild(el('div', { class: 'settings-section' },
-      el('h3', {}, 'Limites diários'),
+      el('h3', {}, 'Limites'),
       el('div', { class: 'settings-row' },
-        el('label', { for: 'dailyNew' }, 'Cards novos por dia'),
+        el('label', { for: 'dailyNew' }, 'Novos cards/dia'),
         el('input', {
           type: 'number', id: 'dailyNew', value: dailyNew, min: '0', max: '200',
           onchange: (e) => db.setSetting('dailyNewCards', Number(e.target.value))
         })
       ),
       el('div', { class: 'settings-row' },
-        el('label', { for: 'dailyReviews' }, 'Revisões por dia'),
+        el('label', { for: 'dailyReviews' }, 'Revisões/dia'),
         el('input', {
           type: 'number', id: 'dailyReviews', value: dailyReviews, min: '0', max: '500',
           onchange: (e) => db.setSetting('dailyReviews', Number(e.target.value))
@@ -78,9 +78,9 @@ export async function renderSettings(app) {
       voices.length > 0 ? el('div', { class: 'settings-row' },
         el('label', { for: 'ttsVoice' }, 'Voz'),
         buildVoiceSelect(voices, ttsVoice)
-      ) : el('p', { class: 'muted' }, 'Carregando vozes do sistema...'),
+      ) : el('p', { class: 'muted' }, 'Carregando vozes do sistema.'),
       el('div', { class: 'settings-row' },
-        el('label', { for: 'autoplay' }, 'Reproduzir automaticamente'),
+        el('label', { for: 'autoplay' }, 'Reprodução automática'),
         el('input', {
           type: 'checkbox', id: 'autoplay', checked: audioAutoplay,
           onchange: (e) => db.setSetting('audioAutoplay', e.target.checked)
@@ -89,11 +89,13 @@ export async function renderSettings(app) {
     ));
 
     container.appendChild(el('div', { class: 'settings-section' },
-      el('h3', {}, 'Backup'),
+      el('h3', {}, 'Backup local'),
       el('p', { class: 'muted', style: { marginBottom: '0.75rem' } },
-        '💡 No iPhone: ao exportar, escolha "Salvar em Arquivos → iCloud Drive" para acessar o backup de qualquer device. No outro celular, importe o mesmo arquivo do iCloud.'
+        'Export JSON manual. No iPhone, salve em Arquivos → iCloud Drive para acesso multi-device.'
       ),
-      lastExport ? el('p', { class: 'muted' }, `Último export: ${new Date(lastExport).toLocaleDateString('pt-BR')}`) : el('p', { class: 'muted' }, 'Você ainda não fez nenhum backup.'),
+      lastExport
+        ? el('p', { class: 'muted' }, `Último export: ${new Date(lastExport).toLocaleDateString('pt-BR')}`)
+        : el('p', { class: 'muted' }, 'Nenhum export realizado.'),
       el('div', { class: 'btn-group' },
         el('button', {
           class: 'btn btn-primary',
@@ -103,24 +105,24 @@ export async function renderSettings(app) {
             await db.setSetting('lastExportAt', Date.now());
             refresh();
           }
-        }, '⬇️ Exportar'),
+        }, 'Exportar'),
         el('label', { class: 'btn' },
-          '⬆️ Importar',
+          'Importar',
           el('input', {
             type: 'file', accept: '.json', style: { display: 'none' },
             onchange: async (e) => {
               const file = e.target.files[0];
               if (!file) return;
-              if (!confirm('Importar substitui todos os dados atuais. Continuar?')) return;
+              if (!confirm('Importar substitui todos os dados locais. Continuar?')) return;
               try {
                 const text = await file.text();
                 const data = JSON.parse(text);
                 await importAll(data);
-                alert('Importado com sucesso. A página será recarregada.');
+                alert('Importado. Recarregando.');
                 location.hash = '#/';
                 location.reload();
               } catch (err) {
-                alert('Erro ao importar: ' + err.message);
+                alert('Falha ao importar: ' + err.message);
               }
             }
           })
@@ -131,17 +133,17 @@ export async function renderSettings(app) {
     container.appendChild(buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, refresh }));
 
     container.appendChild(el('div', { class: 'settings-section' },
-      el('h3', {}, 'Zona de perigo'),
+      el('h3', {}, 'Zona crítica'),
       el('button', {
         class: 'btn btn-danger btn-block',
         onclick: async () => {
-          if (!confirm('Apagar TODOS os dados (decks, cards, progresso, configurações)? Isso é irreversível.')) return;
-          if (!confirm('Tem certeza absoluta?')) return;
+          if (!confirm('Apagar todos os dados locais (decks, cards, progresso, configurações). Irreversível. Continuar?')) return;
+          if (!confirm('Confirmar?')) return;
           await db.resetAll();
           location.hash = '#/';
           location.reload();
         }
-      }, 'Apagar todos os dados')
+      }, 'Apagar dados locais')
     ));
   }
 
@@ -151,7 +153,7 @@ export async function renderSettings(app) {
       id: 'ttsVoice',
       onchange: (e) => db.setSetting('ttsVoice', e.target.value)
     });
-    select.appendChild(el('option', { value: '' }, 'Auto (padrão do sistema)'));
+    select.appendChild(el('option', { value: '' }, 'Padrão do sistema'));
     enVoices.forEach((v) => {
       const opt = el('option', { value: v.name }, `${v.name} (${v.lang})`);
       if (v.name === current) opt.selected = true;
@@ -164,24 +166,24 @@ export async function renderSettings(app) {
 function formatRelativeTime(ts) {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return 'agora mesmo';
-  if (mins < 60) return `há ${mins} min`;
+  if (mins < 1) return 'agora';
+  if (mins < 60) return `${mins} min atrás`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `há ${hours}h`;
+  if (hours < 24) return `${hours} h atrás`;
   const days = Math.floor(hours / 24);
   if (days === 1) return 'ontem';
-  if (days < 30) return `há ${days} dias`;
+  if (days < 30) return `${days} dias atrás`;
   return new Date(ts).toLocaleDateString('pt-BR');
 }
 
 function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, refresh }) {
   if (!isFirebaseConfigured()) {
     return el('div', { class: 'settings-section' },
-      el('h3', {}, '☁️ Sincronização'),
+      el('h3', {}, 'Sincronização'),
       el('p', { class: 'muted' },
-        'Firebase não configurado neste deploy. O administrador precisa colar a config em ',
+        'Firebase não configurado neste deploy. Configure ',
         el('code', {}, 'js/firebase.js'),
-        '. Por enquanto, use o Export manual abaixo para backup.'
+        '. Use export manual abaixo enquanto isso.'
       )
     );
   }
@@ -191,27 +193,26 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
   const email = user?.email || null;
 
   const statusLine = !user
-    ? '⏳ Conectando...'
+    ? 'Conectando.'
     : anon
-      ? '✓ Sincronização anônima ativa'
-      : `✓ Vinculada com Google · ${email}`;
+      ? 'Anônima · ativa'
+      : `Vinculada com Google · ${email}`;
 
   const lastSyncText = cloudLastSyncError
-    ? `⚠️ Último sync falhou: ${cloudLastSyncError}`
+    ? `Falha no último sync: ${cloudLastSyncError}`
     : cloudLastSyncAt
       ? `Último sync: ${formatRelativeTime(cloudLastSyncAt)}`
-      : 'Aguardando primeira sessão pra sincronizar';
+      : 'Aguardando primeira sessão.';
 
   const recoveryPhrase = user ? generateRecoveryPhrase(user.uid) : '—';
 
   return el('div', { class: 'settings-section' },
-    el('h3', {}, '☁️ Sincronização'),
+    el('h3', {}, 'Sincronização'),
     el('p', {}, statusLine),
     el('p', { class: 'muted', style: { color: cloudLastSyncError ? 'var(--danger)' : 'var(--text-dim)' } }, lastSyncText),
 
     anon ? el('div', { class: 'muted', style: { background: 'var(--bg)', padding: '0.6rem 0.8rem', borderRadius: '8px', marginTop: '0.5rem', fontSize: '0.9rem' } },
-      el('strong', {}, '💡 Pra usar em outro celular: '),
-      'vincule sua conta com Google. Aí no outro device, faz login com Google → seus dados voltam.'
+      'Para usar em outro dispositivo, vincule sua conta Google. Login com o mesmo Google no outro device restaura os dados.'
     ) : null,
 
     el('div', { class: 'settings-row', style: { marginTop: '0.5rem' } },
@@ -227,14 +228,14 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
         class: 'btn btn-primary',
         onclick: async (e) => {
           e.target.disabled = true;
-          e.target.textContent = 'Sincronizando...';
+          e.target.textContent = 'Sincronizando.';
           const result = await syncToCloud({ commitMessage: 'Manual sync' });
-          if (result.ok) alert('✓ Sincronizado');
-          else if (result.skipped) alert(`Sync pulado: ${result.reason}`);
-          else alert('Erro: ' + result.error);
+          if (result.ok) alert('Sync concluído.');
+          else if (result.skipped) alert(`Sync ignorado: ${result.reason}`);
+          else alert('Falha: ' + result.error);
           refresh();
         }
-      }, '🔄 Sincronizar agora'),
+      }, 'Sincronizar'),
 
       anon ? el('button', {
         class: 'btn btn-success',
@@ -244,32 +245,32 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
           try {
             await linkWithGoogle();
             await syncToCloud({ commitMessage: 'Linked Google account' });
-            alert('✓ Conta vinculada! Agora use o mesmo Google em outros devices.');
+            alert('Conta vinculada. Use o mesmo Google nos outros dispositivos.');
             refresh();
           } catch (err) {
             if (err.code === 'auth/credential-already-in-use') {
-              if (confirm('Esse Google já está vinculado a outra conta. Quer fazer login nela e RESTAURAR aqueles dados? (Dados atuais deste device serão substituídos)')) {
+              if (confirm('Esse Google já está vinculado a outra conta. Fazer login nela e restaurar os dados? Dados locais atuais serão substituídos.')) {
                 try {
                   await signInWithGoogle();
                   await restoreFromCloud();
-                  alert('✓ Restaurado. Recarregando.');
+                  alert('Restaurado. Recarregando.');
                   location.reload();
                   return;
                 } catch (e2) {
-                  alert('Erro ao restaurar: ' + (e2.message || e2));
+                  alert('Falha ao restaurar: ' + (e2.message || e2));
                 }
               }
             } else {
-              alert('Erro: ' + (err.message || err));
+              alert('Falha: ' + (err.message || err));
             }
             e.target.disabled = false;
-            e.target.textContent = '🔗 Vincular Google';
+            e.target.textContent = 'Vincular Google';
           }
         }
-      }, '🔗 Vincular Google') : el('button', {
+      }, 'Vincular Google') : el('button', {
         class: 'btn btn-warning',
         onclick: async () => {
-          if (!confirm('Desvincular Google? Você voltará a uma conta anônima neste device. Dados na nuvem permanecem.')) return;
+          if (!confirm('Desvincular Google deste dispositivo. Dados na nuvem permanecem intactos. Continuar?')) return;
           await signOutCurrent();
           location.reload();
         }
@@ -281,27 +282,27 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
           e.target.disabled = true;
           e.target.textContent = '...';
           try {
-            if (!confirm('Baixar dados da nuvem e substituir os locais? Faça um Export local antes se quiser segurança.')) {
+            if (!confirm('Substituir dados locais com a versão da nuvem. Recomendado exportar local antes. Continuar?')) {
               e.target.disabled = false;
-              e.target.textContent = '⬇️ Restaurar da nuvem';
+              e.target.textContent = 'Restaurar da nuvem';
               return;
             }
             await restoreFromCloud();
-            alert('✓ Restaurado da nuvem. Recarregando.');
+            alert('Restaurado. Recarregando.');
             location.reload();
           } catch (err) {
-            alert('Erro: ' + err.message);
+            alert('Falha: ' + err.message);
             e.target.disabled = false;
-            e.target.textContent = '⬇️ Restaurar da nuvem';
+            e.target.textContent = 'Restaurar da nuvem';
           }
         }
-      }, '⬇️ Restaurar da nuvem')
+      }, 'Restaurar da nuvem')
     ),
 
     user ? el('details', { style: { marginTop: '1rem' } },
       el('summary', { style: { cursor: 'pointer', color: 'var(--text-dim)', fontSize: '0.85rem' } }, 'Detalhes técnicos'),
       el('p', { class: 'muted', style: { fontSize: '0.85rem', marginTop: '0.5rem' } },
-        'ID do device: ', el('code', {}, user.uid.slice(0, 12), '...'),
+        'UID: ', el('code', {}, user.uid.slice(0, 12), '...'),
         el('br', {}),
         'Apelido: ', el('code', {}, recoveryPhrase)
       )

@@ -11,20 +11,20 @@ export async function renderHistory(app) {
   const token = await db.getSetting('githubToken');
 
   container.appendChild(el('header', { class: 'app-header' },
-    el('a', { href: '#/settings', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Voltar'),
-    el('h1', {}, 'Histórico de Sync')
+    el('a', { href: '#/settings', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Configurações'),
+    el('h1', {}, 'Histórico de sync')
   ));
 
   if (!repo || !token) {
     container.appendChild(el('div', { class: 'card-hero' },
       el('h2', {}, 'Sync GitHub não configurado'),
-      el('p', {}, 'Configure o sync em Configurações primeiro.'),
+      el('p', {}, 'Configure o sync em Configurações antes de acessar o histórico.'),
       el('a', { href: '#/settings', class: 'btn btn-primary' }, 'Ir para Configurações')
     ));
     return;
   }
 
-  const loading = el('p', { class: 'muted' }, 'Carregando histórico...');
+  const loading = el('p', { class: 'muted' }, 'Carregando histórico.');
   container.appendChild(loading);
 
   let commits;
@@ -33,9 +33,9 @@ export async function renderHistory(app) {
   } catch (err) {
     loading.remove();
     container.appendChild(el('div', { class: 'card' },
-      el('h3', {}, '⚠️ Erro ao carregar histórico'),
+      el('h3', {}, 'Falha ao carregar histórico'),
       el('p', { class: 'muted' }, err.message),
-      el('a', { href: '#/settings', class: 'btn' }, 'Voltar para Configurações')
+      el('a', { href: '#/settings', class: 'btn' }, 'Configurações')
     ));
     return;
   }
@@ -44,14 +44,14 @@ export async function renderHistory(app) {
 
   if (commits.length === 0) {
     container.appendChild(el('div', { class: 'card-hero' },
-      el('h2', {}, 'Nenhum sync ainda'),
-      el('p', { class: 'muted' }, 'Faça uma sessão de estudo para criar o primeiro backup.')
+      el('h2', {}, 'Nenhum sync registrado'),
+      el('p', { class: 'muted' }, 'Conclua uma sessão de estudo para gerar o primeiro commit de backup.')
     ));
     return;
   }
 
   container.appendChild(el('p', { class: 'muted', style: { marginBottom: '1rem' } },
-    `${commits.length} commits no repo ${repo}. Você pode restaurar para qualquer ponto.`
+    `${commits.length} commits em ${repo}. Restauração reverte todo o estado local para o ponto selecionado.`
   ));
 
   const list = el('div', { class: 'deck-list' });
@@ -73,17 +73,17 @@ export async function renderHistory(app) {
       el('button', {
         class: 'btn',
         onclick: async (e) => {
-          if (!confirm(`Restaurar para esse ponto?\n\n"${summary}"\n\n⚠️ Todos os dados atuais serão substituídos. Você pode fazer um backup primeiro em Configurações.`)) return;
+          if (!confirm(`Restaurar estado para esse commit?\n\n"${summary}"\n\nSubstitui todos os dados locais. Recomendado exportar backup local antes (Configurações → Exportar).`)) return;
           e.target.disabled = true;
-          e.target.textContent = 'Restaurando...';
+          e.target.textContent = 'Restaurando.';
           try {
             const data = await getCommitContent({ repo, token, sha: commit.sha });
             await importAll(data);
-            alert('✓ Restaurado. Página será recarregada.');
+            alert('Restaurado. Recarregando.');
             location.hash = '#/';
             location.reload();
           } catch (err) {
-            alert('Erro ao restaurar: ' + err.message);
+            alert('Falha ao restaurar: ' + err.message);
             e.target.disabled = false;
             e.target.textContent = 'Restaurar';
           }

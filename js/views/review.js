@@ -12,8 +12,8 @@ export async function renderReview(app) {
   const decks = (await db.getAll('decks')).filter((d) => d.enabled !== false);
   if (decks.length === 0) {
     container.appendChild(el('div', { class: 'card-hero' },
-      el('h2', {}, 'Sem decks carregados'),
-      el('p', {}, 'Faça o teste de nivelamento ou importe um deck.'),
+      el('h2', {}, 'Nenhum deck instalado'),
+      el('p', {}, 'Importe um deck para iniciar revisões.'),
       el('a', { href: '#/decks', class: 'btn btn-primary' }, 'Ir para Decks')
     ));
     return;
@@ -36,9 +36,9 @@ export async function renderReview(app) {
 
   if (queue.length === 0) {
     container.appendChild(el('div', { class: 'card-hero' },
-      el('h2', {}, '🎉 Tudo em dia!'),
-      el('p', {}, 'Nenhum card devido agora. Volte mais tarde ou estude novos cards em /decks.'),
-      el('a', { href: '#/', class: 'btn btn-primary' }, 'Voltar ao início')
+      el('h2', {}, 'Nenhum card a revisar'),
+      el('p', {}, 'Limite diário atingido ou nenhum card vencido. Aumente o limite em Configurações ou volte amanhã.'),
+      el('a', { href: '#/', class: 'btn btn-primary' }, 'Início')
     ));
     return;
   }
@@ -74,9 +74,9 @@ export async function renderReview(app) {
         el('button', {
           class: 'review-speak-btn review-speak-btn-large',
           onclick: (e) => { e.stopPropagation(); speak(card.front.audioText || card.front.text); }
-        }, '🔊')
+        }, '▶')
       );
-      parts.push(el('p', { class: 'muted', style: { marginTop: '1rem' } }, 'Toque para ouvir'));
+      parts.push(el('p', { class: 'muted', style: { marginTop: '1rem' } }, 'Tocar áudio'));
     } else if (card.type === 'reverse') {
       parts.push(el('div', { class: 'review-card-front' }, card.back.text));
       if (card.back.notes) parts.push(el('div', { class: 'review-card-hint' }, card.back.notes));
@@ -88,7 +88,7 @@ export async function renderReview(app) {
           class: 'review-speak-btn',
           'aria-label': 'Ouvir pronúncia',
           onclick: (e) => { e.stopPropagation(); speak(card.front.audioText || card.front.text); }
-        }, '🔊')
+        }, '▶')
       );
     }
 
@@ -117,7 +117,7 @@ export async function renderReview(app) {
         el('button', {
           class: 'review-speak-btn',
           onclick: (e) => { e.stopPropagation(); speak(card.front.audioText || card.front.text); }
-        }, '🔊')
+        }, '▶')
       );
     } else {
       parts.push(el('div', { class: 'review-card-back' }, card.back.text));
@@ -174,7 +174,7 @@ export async function renderReview(app) {
       onclick: () => reveal()
     }, 'Mostrar resposta');
 
-    const stateLabel = { new: 'novo', learning: 'aprendendo', lapsed: 'relapso', review: 'revisão' }[r.state];
+    const stateLabel = { new: 'new', learning: 'learning', lapsed: 'lapsed', review: 'review' }[r.state];
 
     container.appendChild(el('div', { class: 'review-screen' },
       el('div', { class: 'review-header' },
@@ -236,7 +236,7 @@ export async function renderReview(app) {
 
     clear(container);
     container.appendChild(el('div', { class: 'result-screen' },
-      el('h2', {}, '✓ Sessão concluída'),
+      el('h2', {}, 'Sessão concluída'),
       el('div', { class: 'stats-row', style: { width: '100%', maxWidth: '420px' } },
         el('div', { class: 'stat-tile' },
           el('span', { class: 'value' }, String(session.cardsReviewed)),
@@ -254,7 +254,7 @@ export async function renderReview(app) {
       el('p', { class: 'muted', style: { marginTop: '1rem' } },
         `${session.ratings.again} Again · ${session.ratings.hard} Hard · ${session.ratings.good} Good · ${session.ratings.easy} Easy`
       ),
-      el('a', { href: '#/', class: 'btn btn-primary btn-large btn-block', style: { maxWidth: '320px', marginTop: '1.5rem' } }, 'Voltar ao início')
+      el('a', { href: '#/', class: 'btn btn-primary btn-large btn-block', style: { maxWidth: '320px', marginTop: '1.5rem' } }, 'Início')
     ));
   }
 

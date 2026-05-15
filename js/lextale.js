@@ -21,9 +21,9 @@ export function scoreToLevel(score) {
 
 export function levelDescription(level) {
   const descriptions = {
-    a2: 'Você está construindo vocabulário básico. Foco: palavras frequentes, verbos do dia a dia, frases simples.',
-    b1: 'Nível intermediário inicial. Foco: phrasal verbs essenciais, collocations comuns, gramática intermediária.',
-    b2: 'Intermediário avançado. Foco: vocabulário académico, idioms, estruturas complexas.',
+    a2: 'Vocabulário básico em formação. Foco: palavras de alta frequência, verbos cotidianos, estruturas simples.',
+    b1: 'Intermediário inicial. Foco: phrasal verbs essenciais, collocations frequentes, gramática intermediária.',
+    b2: 'Intermediário avançado. Foco: vocabulário acadêmico, idioms, estruturas complexas (subjuntivo, voz passiva, conditionals).',
     c1: 'Avançado. Foco: nuances, idioms sofisticados, vocabulário técnico, sinônimos refinados.'
   };
   return descriptions[level] || descriptions.b1;

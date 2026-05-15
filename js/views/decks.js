@@ -16,21 +16,21 @@ export async function renderDecks(app) {
     const allReviews = await db.getAll('reviews');
 
     const header = el('header', { class: 'app-header' },
-      el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Voltar'),
+      el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Início'),
       el('h1', {}, 'Decks')
     );
     container.appendChild(header);
 
     const available = [
-      { id: 'deck-a2-builtin', file: 'data/deck-a2.json', name: 'A2 - Vocabulário Básico', level: 'a2' },
-      { id: 'deck-b1-builtin', file: 'data/deck-b1.json', name: 'B1 - Phrasal Verbs & Collocations', level: 'b1' },
-      { id: 'deck-b2-builtin', file: 'data/deck-b2.json', name: 'B2 - Idioms & Advanced Vocab', level: 'b2' }
+      { id: 'deck-a2-builtin', file: 'data/deck-a2.json', name: 'A2 — Vocabulário básico', level: 'a2' },
+      { id: 'deck-b1-builtin', file: 'data/deck-b1.json', name: 'B1 — Phrasal verbs & collocations', level: 'b1' },
+      { id: 'deck-b2-builtin', file: 'data/deck-b2.json', name: 'B2 — Idioms & vocabulário avançado', level: 'b2' }
     ];
 
     container.appendChild(el('h3', { style: { marginTop: '1.5rem' } }, 'Instalados'));
 
     if (installedDecks.length === 0) {
-      container.appendChild(el('p', { class: 'muted' }, 'Nenhum deck instalado ainda.'));
+      container.appendChild(el('p', { class: 'muted' }, 'Nenhum deck instalado.'));
     } else {
       const list = el('div', { class: 'deck-list' });
       installedDecks.forEach((deck) => {
@@ -41,7 +41,7 @@ export async function renderDecks(app) {
         list.appendChild(el('div', { class: 'deck-item' },
           el('div', { class: 'deck-item-info' },
             el('div', { class: 'deck-item-name' }, deck.name),
-            el('div', { class: 'deck-item-stats' }, `${learned}/${cards.length} aprendidos · ${deck.enabled !== false ? 'ativo' : 'desativado'}`)
+            el('div', { class: 'deck-item-stats' }, `${learned}/${cards.length} aprendidos${deck.enabled === false ? ' · desativado' : ''}`)
           ),
           el('span', { class: 'deck-item-level' }, deck.level)
         ));
@@ -70,7 +70,7 @@ export async function renderDecks(app) {
                 await importDeckFromJSON(json);
                 await refresh();
               } catch (err) {
-                alert('Erro ao importar: ' + err.message);
+                alert('Falha ao importar: ' + err.message);
                 e.target.textContent = 'Importar';
                 e.target.disabled = false;
               }

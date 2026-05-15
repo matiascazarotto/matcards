@@ -28,7 +28,7 @@ export async function renderHome(app) {
   const view = el('div', { class: 'view view-home' },
     el('header', { class: 'app-header' },
       el('h1', {}, 'matcards'),
-      el('p', { class: 'subtitle' }, 'Aprenda inglês com repetição espaçada')
+      el('p', { class: 'subtitle' }, 'Spaced repetition para inglês.')
     ),
 
     !cefrLevel ? buildWelcome() : buildDashboard(cefrLevel, lextaleScore, decks, dueToday, newCount, streak)
@@ -53,56 +53,57 @@ export async function renderHome(app) {
 function buildWelcome() {
   return el('div', {},
     el('section', { class: 'card-hero' },
-      el('h2', {}, 'Bem-vindo!'),
-      el('p', {}, 'Vamos começar descobrindo seu nível de inglês.'),
-      el('p', { class: 'muted' }, 'Teste rápido de ~5 minutos.'),
-      el('a', { href: '#/placement', class: 'btn btn-primary btn-large btn-block' }, 'Fazer teste de nivelamento')
+      el('p', {}, 'O app determina seu nível por meio do teste LexTALE (~5 min) e monta o deck adequado.'),
+      el('a', { href: '#/placement', class: 'btn btn-primary btn-large btn-block' }, 'Iniciar teste')
     ),
 
     el('div', { class: 'card', style: { textAlign: 'center' } },
-      el('p', { class: 'muted', style: { marginBottom: '0.75rem' } }, 'Ou se você já tem um backup salvo:'),
+      el('p', { class: 'muted', style: { marginBottom: '0.75rem' } }, 'Já tem um backup?'),
       buildImportButton()
     )
   );
 }
 
 function buildDashboard(cefrLevel, lextaleScore, decks, dueToday, newCount, streak) {
+  const headerText = lextaleScore != null
+    ? `Nível ${cefrLevel.toUpperCase()} · Score LexTALE ${Math.round(lextaleScore)}%`
+    : `Nível ${cefrLevel.toUpperCase()}`;
+
   return el('div', {},
     el('section', { class: 'card-hero' },
-      el('h2', {}, `Nível ${cefrLevel.toUpperCase()}`),
-      lextaleScore != null ? el('p', { class: 'muted' }, `Pontuação LexTALE: ${Math.round(lextaleScore)}%`) : null,
+      el('h2', {}, headerText),
       el('a', {
         href: decks.length === 0 ? '#/decks' : '#/review',
         class: 'btn btn-primary btn-large btn-block'
-      }, decks.length === 0 ? 'Carregar deck' : 'Estudar agora')
+      }, decks.length === 0 ? 'Carregar deck' : 'Iniciar revisão')
     ),
 
     el('div', { class: 'stats-row' },
       el('div', { class: 'stat-tile' },
         el('span', { class: 'value' }, String(dueToday)),
-        el('span', { class: 'label' }, 'devidos hoje')
+        el('span', { class: 'label' }, 'a revisar')
       ),
       el('div', { class: 'stat-tile' },
         el('span', { class: 'value' }, String(newCount)),
         el('span', { class: 'label' }, 'novos')
       ),
       el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, `${streak}🔥`),
-        el('span', { class: 'label' }, 'streak')
+        el('span', { class: 'value' }, String(streak)),
+        el('span', { class: 'label' }, streak === 1 ? 'dia seguido' : 'dias seguidos')
       )
     ),
 
     el('nav', { class: 'nav-links' },
-      el('a', { href: '#/decks' }, '📚 Decks'),
-      el('a', { href: '#/stats' }, '📊 Stats'),
-      el('a', { href: '#/settings' }, '⚙️ Config')
+      el('a', { href: '#/decks' }, 'Decks'),
+      el('a', { href: '#/stats' }, 'Estatísticas'),
+      el('a', { href: '#/settings' }, 'Configurações')
     )
   );
 }
 
 function buildImportButton() {
   return el('label', { class: 'btn btn-block', style: { cursor: 'pointer' } },
-    '⬆️ Importar backup',
+    'Importar backup',
     el('input', {
       type: 'file',
       accept: '.json,application/json',
@@ -114,11 +115,11 @@ function buildImportButton() {
           const text = await file.text();
           const data = JSON.parse(text);
           await importAll(data);
-          alert('✓ Backup importado com sucesso!');
+          alert('Backup importado.');
           location.hash = '#/';
           location.reload();
         } catch (err) {
-          alert('Erro ao importar: ' + err.message);
+          alert('Falha ao importar: ' + err.message);
         }
       }
     })
@@ -136,8 +137,8 @@ function buildBackupReminder(lastExport) {
   if (!noBackup && !oldBackup) return null;
 
   const msg = noBackup
-    ? 'Você ainda não fez backup. Faça um para não perder progresso se trocar de celular.'
-    : `Último backup há ${daysSince(lastExport)} dias. Considere fazer um novo.`;
+    ? 'Você ainda não exportou nenhum backup local. Recomendado caso o sync na nuvem falhe.'
+    : `Último export local há ${daysSince(lastExport)} dias.`;
 
   return el('div', { class: 'install-banner' },
     el('button', {
@@ -147,9 +148,9 @@ function buildBackupReminder(lastExport) {
         e.target.closest('.install-banner').remove();
       }
     }, '×'),
-    el('h3', {}, '💾 Lembrete de backup'),
+    el('h3', {}, 'Backup local'),
     el('p', {}, msg),
-    el('a', { href: '#/settings', class: 'btn btn-primary', style: { marginTop: '0.5rem' } }, 'Ir para backup')
+    el('a', { href: '#/settings', class: 'btn btn-primary', style: { marginTop: '0.5rem' } }, 'Ir para Configurações')
   );
 }
 
@@ -163,7 +164,7 @@ function isIOS() {
 
 function buildSyncErrorBanner(error) {
   return el('div', { class: 'install-banner', style: { borderColor: 'var(--danger)' } },
-    el('h3', {}, '⚠️ Sync GitHub falhou'),
+    el('h3', {}, 'Sync falhou'),
     el('p', { class: 'muted', style: { fontSize: '0.9rem' } }, error),
     el('a', { href: '#/settings', class: 'btn btn-primary', style: { marginTop: '0.5rem' } }, 'Resolver')
   );
@@ -181,12 +182,12 @@ function buildInstallBanner(hasData) {
         e.target.closest('.install-banner').remove();
       }
     }, '×'),
-    el('h3', {}, '📱 Instale no seu iPhone'),
-    el('p', {}, 'Toque no botão Compartilhar (⬆️ na barra do Safari) → "Adicionar à Tela de Início".'),
+    el('h3', {}, 'Instalar como app'),
+    el('p', {}, 'Safari → Compartilhar → "Adicionar à Tela de Início".'),
     hasData ? el('p', { class: 'muted', style: { marginTop: '0.5rem' } },
-      '⚠️ Importante: o iOS guarda dados separados entre Safari e app instalado. Para preservar seu progresso, faça um Export (Config → Exportar) e Import depois de instalar.'
+      'iOS isola storage entre Safari e PWA instalada. Para preservar progresso, exporte um backup antes (Configurações → Exportar) e importe após instalar.'
     ) : el('p', { class: 'muted', style: { marginTop: '0.5rem' } },
-      '💡 Dica: instale ANTES de fazer o teste de nivelamento, pra não precisar refazer depois.'
+      'Recomendado instalar antes do teste de nivelamento para evitar reiniciar.'
     )
   );
 }

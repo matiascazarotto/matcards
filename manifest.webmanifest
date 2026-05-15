@@ -1,7 +1,7 @@
 {
-  "name": "matcards - Aprender Inglês",
+  "name": "matcards",
   "short_name": "matcards",
-  "description": "Aprenda inglês com repetição espaçada",
+  "description": "Spaced repetition para inglês",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

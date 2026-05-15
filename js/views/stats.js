@@ -21,14 +21,14 @@ export async function renderStats(app) {
   reviews.forEach((r) => { stateCounts[r.state] = (stateCounts[r.state] || 0) + 1; });
 
   container.appendChild(el('header', { class: 'app-header' },
-    el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Voltar'),
+    el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Início'),
     el('h1', {}, 'Estatísticas')
   ));
 
   container.appendChild(el('div', { class: 'stats-row' },
     el('div', { class: 'stat-tile' },
-      el('span', { class: 'value' }, `${streak}🔥`),
-      el('span', { class: 'label' }, 'dias seguidos')
+      el('span', { class: 'value' }, String(streak)),
+      el('span', { class: 'label' }, streak === 1 ? 'dia seguido' : 'dias seguidos')
     ),
     el('div', { class: 'stat-tile' },
       el('span', { class: 'value' }, `${Math.round(retention)}%`),
@@ -36,14 +36,14 @@ export async function renderStats(app) {
     ),
     el('div', { class: 'stat-tile' },
       el('span', { class: 'value' }, String(totalReviews)),
-      el('span', { class: 'label' }, 'total reviews')
+      el('span', { class: 'label' }, 'reviews totais')
     )
   ));
 
   container.appendChild(el('div', { class: 'settings-section' },
-    el('h3', {}, 'Atividade (últimos 98 dias)'),
+    el('h3', {}, 'Atividade — últimos 98 dias'),
     buildHeatmap(heatmap),
-    el('p', { class: 'muted', style: { marginTop: '0.5rem' } }, `Tempo total estudado: ${totalTimeMin} min`)
+    el('p', { class: 'muted', style: { marginTop: '0.5rem' } }, `Total estudado: ${totalTimeMin} min`)
   ));
 
   container.appendChild(el('div', { class: 'settings-section' },
@@ -51,21 +51,21 @@ export async function renderStats(app) {
     el('div', { class: 'stats-row' },
       el('div', { class: 'stat-tile' },
         el('span', { class: 'value' }, String(stateCounts.new)),
-        el('span', { class: 'label' }, 'novos')
+        el('span', { class: 'label' }, 'new')
       ),
       el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(stateCounts.learning)),
-        el('span', { class: 'label' }, 'aprendendo')
+        el('span', { class: 'value' }, String(stateCounts.learning + stateCounts.lapsed)),
+        el('span', { class: 'label' }, 'learning')
       ),
       el('div', { class: 'stat-tile' },
         el('span', { class: 'value' }, String(stateCounts.review)),
-        el('span', { class: 'label' }, 'revisão')
+        el('span', { class: 'label' }, 'review')
       )
     )
   ));
 
   container.appendChild(el('div', { class: 'settings-section' },
-    el('h3', {}, 'A vencer (próximos 14 dias)'),
+    el('h3', {}, 'Próximas revisões — 14 dias'),
     buildUpcoming(upcoming)
   ));
 }
