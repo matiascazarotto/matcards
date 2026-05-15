@@ -23,6 +23,7 @@ export async function renderReview(app) {
 
   const dailyNew = await db.getSetting('dailyNewCards', 20);
   const dailyReviews = await db.getSetting('dailyReviews', 200);
+  const audioAutoplay = await db.getSetting('audioAutoplay', true);
 
   const enabledDeckIds = new Set(decks.map((d) => d.id));
   const allCards = (await db.getAll('cards')).filter((c) => enabledDeckIds.has(c.deckId));
@@ -62,6 +63,7 @@ export async function renderReview(app) {
   let revealed = false;
   let idx = 0;
   let ttsWarmedUp = false;
+  let renderVersion = 0;
 
   function currentReview() { return queue[idx]; }
   function currentCard() { return cardMap.get(currentReview().cardId); }
@@ -99,9 +101,12 @@ export async function renderReview(app) {
       );
     }
 
-    if (r.state === 'new' && !ttsWarmedUp && (card.type === 'basic' || card.type === 'listening')) {
+    if (audioAutoplay && r.state === 'new' && card.type === 'basic') {
       const autoplay = card.front.audioText || card.front.text;
-      if (card.type === 'basic') setTimeout(() => speak(autoplay), 200);
+      const version = renderVersion;
+      setTimeout(() => {
+        if (version === renderVersion && container.isConnected) speak(autoplay);
+      }, 200);
     }
 
     return parts;
@@ -147,6 +152,7 @@ export async function renderReview(app) {
   }
 
   function render() {
+    renderVersion++;
     clear(container);
     if (idx >= queue.length) return finishSession();
 

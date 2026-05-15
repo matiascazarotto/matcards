@@ -28,7 +28,8 @@ export function getVoices() {
 export function warmupTTS() {
   if (!isSupported() || _warmedUp) return;
   try {
-    const u = new SpeechSynthesisUtterance('');
+    const u = new SpeechSynthesisUtterance('ready');
+    u.lang = 'en-US';
     u.volume = 0;
     speechSynthesis.speak(u);
     _warmedUp = true;

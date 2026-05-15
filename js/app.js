@@ -8,6 +8,7 @@ import { renderDecks } from './views/decks.js';
 import { renderStats } from './views/stats.js';
 import { renderSettings } from './views/settings.js';
 import { renderHistory } from './views/history.js';
+import { warmupTTS } from './tts.js';
 
 const TABS = [
   { id: 'home', label: 'Início', hash: '#/', icon: 'home', match: /^#?\/?$/ },
@@ -66,7 +67,12 @@ async function route() {
     await matched.render(content, hash);
   } catch (err) {
     console.error('[router] view error:', err);
-    content.innerHTML = `<div class="view"><h1 class="page-title">Erro</h1><p class="muted">${err.message}</p><a class="btn mt-3" href="#/">Início</a></div>`;
+    clear(content);
+    content.appendChild(el('div', { class: 'view' },
+      el('h1', { class: 'page-title' }, 'Erro'),
+      el('p', { class: 'muted' }, err.message || 'Falha inesperada.'),
+      el('a', { class: 'btn mt-3', href: '#/' }, 'Início')
+    ));
   }
 
   window.scrollTo(0, 0);
@@ -75,6 +81,15 @@ async function route() {
 export function navigate(hash) {
   if (location.hash === hash) route();
   else location.hash = hash;
+}
+
+function isReviewLink(target) {
+  const link = target?.closest?.('a[href^="#/review"]');
+  return Boolean(link);
+}
+
+function warmupReviewAudio(e) {
+  if (isReviewLink(e.target)) warmupTTS();
 }
 
 async function init() {
@@ -101,6 +116,11 @@ async function init() {
   }
 
   buildTabBar();
+  document.addEventListener('pointerdown', warmupReviewAudio, { capture: true });
+  document.addEventListener('click', warmupReviewAudio, { capture: true });
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && isReviewLink(e.target)) warmupTTS();
+  }, { capture: true });
   window.addEventListener('hashchange', route);
   route();
 }
