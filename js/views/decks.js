@@ -31,8 +31,7 @@ export async function renderDecks(app) {
       { id: 'deck-b2-builtin', file: 'data/deck-b2.json', name: 'Idioms & vocabulário avançado', level: 'b2' },
       { id: 'deck-false-friends-pt-en-builtin', file: 'data/deck-false-friends-pt-en.json', name: 'False friends PT-EN', level: 'b1' },
       { id: 'imported-phrasal-550-p1', file: 'data/deck-phrasal-550-p1.json', name: '550 Phrasal Verbs Part 1 (sentence mining)', level: 'b1' },
-      { id: 'imported-phrasal-550-p2', file: 'data/deck-phrasal-550-p2.json', name: '550 Phrasal Verbs Part 2 (sentence mining)', level: 'b1' },
-      { id: 'imported-4000ew-v2', file: 'data/deck-4000ew-v2.json', name: '4000 Essential English Words (Nation)', level: 'b1' }
+      { id: 'imported-phrasal-550-p2', file: 'data/deck-phrasal-550-p2.json', name: '550 Phrasal Verbs Part 2 (sentence mining)', level: 'b1' }
     ];
 
     if (installedDecks.length === 0) {
