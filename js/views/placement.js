@@ -1,6 +1,8 @@
 import { el, clear, shuffle, icon } from '../utils.js';
 import { db } from '../db.js';
-import { scoreToLevel, levelDescription, recommendedDeck } from '../lextale.js';
+import { computeScore, levelDescription, recommendedDeck } from '../lextale.js';
+
+const LEVEL_LABELS = ['a1', 'a2', 'b1', 'b2', 'c1'];
 
 export async function renderPlacement(app) {
   let items = [];
@@ -31,7 +33,8 @@ export async function renderPlacement(app) {
         el('h1', {}, 'Teste de nivelamento')
       ),
       el('p', { class: 'muted mt-3' }, `${shuffled.length} palavras em inglês. Para cada uma, marque "Conheço" ou "Não conheço".`),
-      el('p', { class: 'muted mt-3' }, 'Parte das palavras é inventada — marque "Não conheço" nessas. Isso permite ao algoritmo (LexTALE) corrigir chutes.'),
+      el('p', { class: 'muted mt-3' }, 'Parte das palavras é inventada — marque "Não conheço" nessas. Isso corrige tentativas de chute.'),
+      el('p', { class: 'muted mt-3' }, 'Palavras reais vêm de listas acadêmicas tagueadas por nível CEFR; pseudo-palavras vêm do teste LexTALE.'),
       el('div', { class: 'placement-buttons mt-5' },
         el('button', {
           class: 'btn btn-primary btn-large btn-block',
@@ -74,42 +77,63 @@ export async function renderPlacement(app) {
   }
 
   function answer(knows) {
-    answers.push({ word: shuffled[idx].word, isReal: shuffled[idx].isReal, knows });
+    const item = shuffled[idx];
+    answers.push({ word: item.word, isReal: item.isReal, level: item.level, knows });
     idx++;
     if (idx >= shuffled.length) showResult();
     else showQuestion();
   }
 
   async function showResult() {
-    const real = answers.filter((a) => a.isReal);
-    const fake = answers.filter((a) => !a.isReal);
-    const realCorrect = real.filter((a) => a.knows).length;
-    const fakeCorrect = fake.filter((a) => !a.knows).length;
-    const realPct = real.length ? (realCorrect / real.length) * 100 : 0;
-    const fakePct = fake.length ? (fakeCorrect / fake.length) * 100 : 0;
-    const score = (realPct + fakePct) / 2;
-    const level = scoreToLevel(score);
+    const result = computeScore(answers);
 
-    await db.setSetting('cefrLevel', level);
-    await db.setSetting('lextaleScore', score);
+    await db.setSetting('cefrLevel', result.level);
+    await db.setSetting('lextaleScore', result.score);
     await db.setSetting('lextaleCompletedAt', Date.now());
+
+    const breakdown = el('div', { class: 'placement-breakdown' },
+      ...LEVEL_LABELS.map((L) => {
+        const row = result.perLevel[L];
+        const pct = Math.round(row.adjusted * 100);
+        return el('div', { class: 'placement-breakdown-row' },
+          el('span', { class: 'placement-breakdown-label mono' }, L.toUpperCase()),
+          el('div', { class: 'placement-breakdown-bar' },
+            el('div', {
+              class: 'placement-breakdown-fill',
+              style: { width: `${pct}%` }
+            })
+          ),
+          el('span', { class: 'placement-breakdown-pct mono' }, `${row.correct}/${row.total}`)
+        );
+      })
+    );
+
+    const unreliableNote = result.unreliable
+      ? el('p', { class: 'placement-warning' },
+          `Atenção: ${result.fakeKnown} de ${result.fakeTotal} palavras inventadas marcadas como conhecidas. Resultado pode estar inflado — refaça com mais atenção.`)
+      : null;
 
     clear(container);
     container.appendChild(buildCloseButton());
     container.appendChild(el('div', { class: 'result-screen' },
       el('span', { class: 'hero-label' }, 'Resultado'),
-      el('div', { class: 'result-score' }, `${Math.round(score)}%`),
-      el('div', { class: 'result-level' }, `Nível ${level.toUpperCase()}`),
-      el('p', { class: 'result-description' }, levelDescription(level)),
-      el('p', { class: 'mute2 mono', style: { fontSize: '0.85rem', marginBottom: '2rem' } },
-        `${realCorrect}/${real.length} reais reconhecidas · ${fakeCorrect}/${fake.length} inventadas rejeitadas`
+      el('div', { class: 'result-score' }, `${Math.round(result.score)}%`),
+      el('div', { class: 'result-level' }, `Nível ${result.level.toUpperCase()}`),
+      el('p', { class: 'result-description' }, levelDescription(result.level)),
+      breakdown,
+      el('p', { class: 'mute2 mono', style: { fontSize: '0.8rem', marginBottom: '1.5rem', textAlign: 'center' } },
+        `Reconhecimento por nível · ${Math.round(result.falseAlarm * 100)}% falso-positivo descontado`
       ),
+      unreliableNote,
       el('div', { class: 'result-actions' },
         el('a', {
           href: '#/decks',
           class: 'btn btn-primary btn-large btn-block'
-        }, `Carregar deck ${recommendedDeck(level).toUpperCase()}`),
+        }, `Carregar deck ${recommendedDeck(result.level).toUpperCase()}`),
         el('a', { href: '#/', class: 'btn btn-block' }, 'Início')
+      ),
+      el('p', { class: 'mute2', style: { fontSize: '0.7rem', textAlign: 'center', marginTop: '2rem' } },
+        'Itens: CEFR-J Vocabulary Profile v1.5 (Tono Lab, TUFS) · Octanove C1/C2 v1.0 · LexTALE (Lemhöfer & Broersma, 2012)'
       )
     ));
   }
