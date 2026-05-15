@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matcards-v9';
+const CACHE_NAME = 'matcards-v10';
 
 const APP_SHELL = [
   './',
@@ -13,6 +13,7 @@ const APP_SHELL = [
   './js/tts.js',
   './js/stats.js',
   './js/importExport.js',
+  './js/apkg-import.js',
   './js/github-sync.js',
   './js/sync-runner.js',
   './js/firebase.js',
@@ -33,8 +34,7 @@ const APP_SHELL = [
   './data/deck-a2.json',
   './data/deck-b1.json',
   './data/deck-b2.json',
-  './data/deck-false-friends-pt-en.json',
-  './data/recommended-decks.json'
+  './data/deck-false-friends-pt-en.json'
 ];
 
 self.addEventListener('install', (event) => {
