@@ -20,53 +20,52 @@ export async function renderStats(app) {
   const stateCounts = { new: 0, learning: 0, review: 0, lapsed: 0 };
   reviews.forEach((r) => { stateCounts[r.state] = (stateCounts[r.state] || 0) + 1; });
 
-  container.appendChild(el('header', { class: 'app-header' },
-    el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '← Início'),
+  container.appendChild(el('header', { class: 'page-title' },
     el('h1', {}, 'Estatísticas')
   ));
 
-  container.appendChild(el('div', { class: 'stats-row' },
-    el('div', { class: 'stat-tile' },
-      el('span', { class: 'value' }, String(streak)),
+  container.appendChild(el('div', { class: 'metrics' },
+    el('div', { class: 'metric' },
+      el('span', { class: 'num mono accent' }, String(streak)),
       el('span', { class: 'label' }, streak === 1 ? 'dia seguido' : 'dias seguidos')
     ),
-    el('div', { class: 'stat-tile' },
-      el('span', { class: 'value' }, `${Math.round(retention)}%`),
+    el('div', { class: 'metric' },
+      el('span', { class: 'num mono' }, `${Math.round(retention)}%`),
       el('span', { class: 'label' }, 'retenção 30d')
     ),
-    el('div', { class: 'stat-tile' },
-      el('span', { class: 'value' }, String(totalReviews)),
+    el('div', { class: 'metric' },
+      el('span', { class: 'num mono' }, String(totalReviews)),
       el('span', { class: 'label' }, 'reviews totais')
     )
   ));
 
   container.appendChild(el('div', { class: 'settings-section' },
     el('h3', {}, 'Atividade — últimos 98 dias'),
-    buildHeatmap(heatmap),
-    el('p', { class: 'muted', style: { marginTop: '0.5rem' } }, `Total estudado: ${totalTimeMin} min`)
+    el('div', { style: { padding: '0 1rem 1rem' } },
+      buildHeatmap(heatmap),
+      el('p', { class: 'muted', style: { marginTop: '0.5rem', padding: 0, fontSize: '0.85rem' } }, `Total estudado: ${totalTimeMin} min`)
+    )
   ));
 
   container.appendChild(el('div', { class: 'settings-section' },
     el('h3', {}, 'Distribuição de cards'),
-    el('div', { class: 'stats-row' },
-      el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(stateCounts.new)),
-        el('span', { class: 'label' }, 'new')
-      ),
-      el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(stateCounts.learning + stateCounts.lapsed)),
-        el('span', { class: 'label' }, 'learning')
-      ),
-      el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(stateCounts.review)),
-        el('span', { class: 'label' }, 'review')
-      )
+    el('div', { class: 'settings-row' },
+      el('label', {}, 'new'),
+      el('span', { class: 'mono' }, String(stateCounts.new))
+    ),
+    el('div', { class: 'settings-row' },
+      el('label', {}, 'learning'),
+      el('span', { class: 'mono' }, String(stateCounts.learning + stateCounts.lapsed))
+    ),
+    el('div', { class: 'settings-row' },
+      el('label', {}, 'review'),
+      el('span', { class: 'mono' }, String(stateCounts.review))
     )
   ));
 
   container.appendChild(el('div', { class: 'settings-section' },
     el('h3', {}, 'Próximas revisões — 14 dias'),
-    buildUpcoming(upcoming)
+    el('div', { style: { padding: '0 1rem 1rem' } }, buildUpcoming(upcoming))
   ));
 }
 
@@ -88,16 +87,12 @@ function buildHeatmap(data) {
 
 function buildUpcoming(upcoming) {
   const max = Math.max(1, ...upcoming.map((u) => u.count));
-  const wrapper = el('div', { style: { display: 'flex', alignItems: 'flex-end', gap: '4px', height: '80px', marginTop: '0.5rem' } });
+  const wrapper = el('div', { class: 'upcoming-chart' });
   upcoming.forEach((u) => {
     const h = (u.count / max) * 100;
     wrapper.appendChild(el('div', {
-      style: {
-        flex: '1',
-        height: `${Math.max(h, 4)}%`,
-        background: u.count > 0 ? 'var(--primary)' : 'var(--bg-card)',
-        borderRadius: '3px 3px 0 0'
-      },
+      class: u.count > 0 ? 'upcoming-bar' : 'upcoming-bar empty',
+      style: { height: `${Math.max(h, 4)}%` },
       title: `${u.date}: ${u.count} devidos`
     }));
   });

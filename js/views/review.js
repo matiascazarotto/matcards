@@ -1,4 +1,4 @@
-import { el, clear, formatInterval } from '../utils.js';
+import { el, clear, formatInterval, icon } from '../utils.js';
 import { db } from '../db.js';
 import { uuid } from '../utils.js';
 import { review as srsReview, previewIntervals, QUALITY, initialReview } from '../srs.js';
@@ -6,15 +6,17 @@ import { speak, warmupTTS } from '../tts.js';
 import { syncToCloud, shouldAutoSync } from '../cloud-sync.js';
 
 export async function renderReview(app) {
-  const container = el('div', { class: 'view' });
+  const container = el('div', { class: 'view-modal' });
   app.appendChild(container);
 
   const decks = (await db.getAll('decks')).filter((d) => d.enabled !== false);
   if (decks.length === 0) {
-    container.appendChild(el('div', { class: 'card-hero' },
-      el('h2', {}, 'Nenhum deck instalado'),
-      el('p', {}, 'Importe um deck para iniciar revisões.'),
-      el('a', { href: '#/decks', class: 'btn btn-primary' }, 'Ir para Decks')
+    clear(container);
+    container.appendChild(buildCloseButton());
+    container.appendChild(el('div', { class: 'result-screen' },
+      el('h1', {}, 'Nenhum deck instalado'),
+      el('p', { class: 'muted mt-3', style: { marginBottom: '2rem' } }, 'Importe um deck para iniciar revisões.'),
+      el('a', { href: '#/decks', class: 'btn btn-primary btn-large' }, 'Ir para Decks')
     ));
     return;
   }
@@ -35,10 +37,14 @@ export async function renderReview(app) {
   const queue = [...learningQueue, ...reviewQueue, ...newQueue];
 
   if (queue.length === 0) {
-    container.appendChild(el('div', { class: 'card-hero' },
-      el('h2', {}, 'Nenhum card a revisar'),
-      el('p', {}, 'Limite diário atingido ou nenhum card vencido. Aumente o limite em Configurações ou volte amanhã.'),
-      el('a', { href: '#/', class: 'btn btn-primary' }, 'Início')
+    clear(container);
+    container.appendChild(buildCloseButton());
+    container.appendChild(el('div', { class: 'result-screen' },
+      el('h1', {}, 'Nenhum card a revisar'),
+      el('p', { class: 'muted mt-3', style: { maxWidth: '24em', marginBottom: '2rem' } },
+        'Limite diário atingido ou nenhum card vencido. Aumente o limite em Configurações ou volte amanhã.'
+      ),
+      el('a', { href: '#/', class: 'btn btn-primary btn-large' }, 'Início')
     ));
     return;
   }
@@ -74,9 +80,9 @@ export async function renderReview(app) {
         el('button', {
           class: 'review-speak-btn review-speak-btn-large',
           onclick: (e) => { e.stopPropagation(); speak(card.front.audioText || card.front.text); }
-        }, '▶')
+        }, icon('play'))
       );
-      parts.push(el('p', { class: 'muted', style: { marginTop: '1rem' } }, 'Tocar áudio'));
+      parts.push(el('p', { class: 'muted', style: { marginTop: '1rem', fontSize: '0.85rem' } }, 'Tocar áudio'));
     } else if (card.type === 'reverse') {
       parts.push(el('div', { class: 'review-card-front' }, card.back.text));
       if (card.back.notes) parts.push(el('div', { class: 'review-card-hint' }, card.back.notes));
@@ -87,8 +93,9 @@ export async function renderReview(app) {
         el('button', {
           class: 'review-speak-btn',
           'aria-label': 'Ouvir pronúncia',
+          style: { marginTop: '1.5rem' },
           onclick: (e) => { e.stopPropagation(); speak(card.front.audioText || card.front.text); }
-        }, '▶')
+        }, icon('play'))
       );
     }
 
@@ -107,17 +114,18 @@ export async function renderReview(app) {
     if (card.type === 'cloze' && card.cloze) {
       const filled = card.cloze.sentence.replace(/\[([^\]]+)\]/g, '<span class="review-cloze-fill">$1</span>');
       parts.push(el('div', { class: 'review-card-back', html: filled }));
-      if (card.back?.text) parts.push(el('p', { class: 'muted', style: { marginTop: '0.5rem' } }, card.back.text));
+      if (card.back?.text) parts.push(el('p', { class: 'muted', style: { marginTop: '0.5rem', fontSize: '0.9rem' } }, card.back.text));
     } else if (card.type === 'listening') {
       parts.push(el('div', { class: 'review-card-back' }, card.front.text));
-      if (card.back?.text) parts.push(el('p', { class: 'muted', style: { marginTop: '0.5rem' } }, card.back.text));
+      if (card.back?.text) parts.push(el('p', { class: 'muted', style: { marginTop: '0.5rem', fontSize: '0.9rem' } }, card.back.text));
     } else if (card.type === 'reverse') {
       parts.push(el('div', { class: 'review-card-back' }, card.front.text));
       parts.push(
         el('button', {
           class: 'review-speak-btn',
+          style: { marginTop: '1rem' },
           onclick: (e) => { e.stopPropagation(); speak(card.front.audioText || card.front.text); }
-        }, '▶')
+        }, icon('play'))
       );
     } else {
       parts.push(el('div', { class: 'review-card-back' }, card.back.text));
@@ -176,12 +184,13 @@ export async function renderReview(app) {
 
     const stateLabel = { new: 'new', learning: 'learning', lapsed: 'lapsed', review: 'review' }[r.state];
 
+    container.appendChild(buildCloseButton());
     container.appendChild(el('div', { class: 'review-screen' },
-      el('div', { class: 'review-header' },
-        el('a', { href: '#/', style: { color: 'var(--text-dim)', textDecoration: 'none' } }, '✕'),
-        el('div', { class: 'review-counter' },
-          el('span', { title: 'restantes' }, `${queue.length - idx}`),
-          el('span', { class: 'muted' }, stateLabel)
+      el('div', { class: 'modal-header' },
+        el('span', { class: 'modal-counter' },
+          el('span', { class: 'num mono' }, String(queue.length - idx)),
+          ' restantes · ',
+          el('span', { class: 'mono' }, stateLabel)
         )
       ),
       cardEl,
@@ -235,26 +244,31 @@ export async function renderReview(app) {
     const accuracy = session.cardsReviewed ? Math.round((correct / session.cardsReviewed) * 100) : 0;
 
     clear(container);
+    container.appendChild(buildCloseButton());
     container.appendChild(el('div', { class: 'result-screen' },
-      el('h2', {}, 'Sessão concluída'),
-      el('div', { class: 'stats-row', style: { width: '100%', maxWidth: '420px' } },
-        el('div', { class: 'stat-tile' },
-          el('span', { class: 'value' }, String(session.cardsReviewed)),
+      el('span', { class: 'hero-label' }, 'Sessão concluída'),
+      el('div', { class: 'result-score' }, `${accuracy}%`),
+      el('div', { class: 'result-level' }, 'de acerto'),
+      el('div', { class: 'metrics', style: { width: '100%', maxWidth: '420px', marginBottom: '1.5rem' } },
+        el('div', { class: 'metric' },
+          el('span', { class: 'num mono' }, String(session.cardsReviewed)),
           el('span', { class: 'label' }, 'cards')
         ),
-        el('div', { class: 'stat-tile' },
-          el('span', { class: 'value' }, `${accuracy}%`),
-          el('span', { class: 'label' }, 'acerto')
-        ),
-        el('div', { class: 'stat-tile' },
-          el('span', { class: 'value' }, `${Math.round(session.durationMs / 1000)}s`),
+        el('div', { class: 'metric' },
+          el('span', { class: 'num mono' }, `${Math.round(session.durationMs / 1000)}s`),
           el('span', { class: 'label' }, 'tempo')
+        ),
+        el('div', { class: 'metric' },
+          el('span', { class: 'num mono' }, String(session.newCards)),
+          el('span', { class: 'label' }, 'novos')
         )
       ),
-      el('p', { class: 'muted', style: { marginTop: '1rem' } },
-        `${session.ratings.again} Again · ${session.ratings.hard} Hard · ${session.ratings.good} Good · ${session.ratings.easy} Easy`
+      el('p', { class: 'mute2 mono', style: { fontSize: '0.85rem', marginBottom: '1.5rem' } },
+        `${session.ratings.again} · ${session.ratings.hard} · ${session.ratings.good} · ${session.ratings.easy}`
       ),
-      el('a', { href: '#/', class: 'btn btn-primary btn-large btn-block', style: { maxWidth: '320px', marginTop: '1.5rem' } }, 'Início')
+      el('div', { class: 'result-actions' },
+        el('a', { href: '#/', class: 'btn btn-primary btn-large btn-block' }, 'Início')
+      )
     ));
   }
 
@@ -278,4 +292,12 @@ export async function renderReview(app) {
   }
 
   render();
+}
+
+function buildCloseButton() {
+  return el('a', {
+    href: '#/',
+    class: 'modal-close',
+    'aria-label': 'Fechar'
+  }, icon('close'));
 }

@@ -1,5 +1,5 @@
 import { openDB } from './db.js';
-import { clear } from './utils.js';
+import { clear, el, icon } from './utils.js';
 import { ensureSignedIn, isConfigured as isFirebaseConfigured } from './firebase.js';
 import { renderHome } from './views/home.js';
 import { renderPlacement } from './views/placement.js';
@@ -9,31 +9,64 @@ import { renderStats } from './views/stats.js';
 import { renderSettings } from './views/settings.js';
 import { renderHistory } from './views/history.js';
 
+const TABS = [
+  { id: 'home', label: 'Início', hash: '#/', icon: 'home', match: /^#?\/?$/ },
+  { id: 'decks', label: 'Decks', hash: '#/decks', icon: 'decks', match: /^#\/decks/ },
+  { id: 'stats', label: 'Estatísticas', hash: '#/stats', icon: 'stats', match: /^#\/stats/ },
+  { id: 'settings', label: 'Configurações', hash: '#/settings', icon: 'settings', match: /^#\/settings/ }
+];
+
 const routes = [
-  { match: /^#?\/?$/, render: renderHome },
-  { match: /^#\/placement/, render: renderPlacement },
-  { match: /^#\/review/, render: renderReview },
-  { match: /^#\/decks/, render: renderDecks },
-  { match: /^#\/stats/, render: renderStats },
-  { match: /^#\/settings/, render: renderSettings },
-  { match: /^#\/history/, render: renderHistory }
+  { match: /^#?\/?$/, render: renderHome, modal: false },
+  { match: /^#\/placement/, render: renderPlacement, modal: true },
+  { match: /^#\/review/, render: renderReview, modal: true },
+  { match: /^#\/decks/, render: renderDecks, modal: false },
+  { match: /^#\/stats/, render: renderStats, modal: false },
+  { match: /^#\/settings/, render: renderSettings, modal: false },
+  { match: /^#\/history/, render: renderHistory, modal: true }
 ];
 
 function getRoute() {
   return location.hash || '#/';
 }
 
+function buildTabBar() {
+  const bar = document.getElementById('tab-bar');
+  if (!bar) return;
+  clear(bar);
+  for (const tab of TABS) {
+    bar.appendChild(
+      el('a', { href: tab.hash, class: 'tab-item', dataset: { tab: tab.id } },
+        icon(tab.icon),
+        el('span', { class: 'tab-label' }, tab.label)
+      )
+    );
+  }
+}
+
+function updateTabBar(hash, modal) {
+  const bar = document.getElementById('tab-bar');
+  if (!bar) return;
+  bar.hidden = Boolean(modal);
+  const activeTab = TABS.find((t) => t.match.test(hash));
+  bar.querySelectorAll('.tab-item').forEach((item) => {
+    item.classList.toggle('active', activeTab && item.dataset.tab === activeTab.id);
+  });
+}
+
 async function route() {
   const hash = getRoute();
-  const app = document.getElementById('app');
+  const content = document.getElementById('content');
   const matched = routes.find((r) => r.match.test(hash)) || routes[0];
 
-  clear(app);
+  clear(content);
+  updateTabBar(hash, matched.modal);
+
   try {
-    await matched.render(app, hash);
+    await matched.render(content, hash);
   } catch (err) {
     console.error('[router] view error:', err);
-    app.innerHTML = `<div class="view"><h2>Erro</h2><p>${err.message}</p><a class="btn" href="#/">Voltar</a></div>`;
+    content.innerHTML = `<div class="view"><h1 class="page-title">Erro</h1><p class="muted">${err.message}</p><a class="btn mt-3" href="#/">Início</a></div>`;
   }
 
   window.scrollTo(0, 0);
@@ -67,6 +100,7 @@ async function init() {
       .catch((e) => console.warn('[sw] registration failed:', e));
   }
 
+  buildTabBar();
   window.addEventListener('hashchange', route);
   route();
 }

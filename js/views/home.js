@@ -26,7 +26,7 @@ export async function renderHome(app) {
   }
 
   const view = el('div', { class: 'view view-home' },
-    el('header', { class: 'app-header' },
+    el('header', { class: 'page-title' },
       el('h1', {}, 'matcards'),
       el('p', { class: 'subtitle' }, 'Spaced repetition para inglês.')
     ),
@@ -52,12 +52,14 @@ export async function renderHome(app) {
 
 function buildWelcome() {
   return el('div', {},
-    el('section', { class: 'card-hero' },
-      el('p', {}, 'O app determina seu nível por meio do teste LexTALE (~5 min) e monta o deck adequado.'),
+    el('section', { class: 'hero' },
+      el('span', { class: 'hero-label' }, 'Primeiro acesso'),
+      el('div', { class: 'hero-num' }, 'A2–C1'),
+      el('p', { class: 'hero-sub' }, 'O app determina seu nível por meio do teste LexTALE (~5 min) e monta o deck adequado.'),
       el('a', { href: '#/placement', class: 'btn btn-primary btn-large btn-block' }, 'Iniciar teste')
     ),
 
-    el('div', { class: 'card', style: { textAlign: 'center' } },
+    el('div', { class: 'card text-center' },
       el('p', { class: 'muted', style: { marginBottom: '0.75rem' } }, 'Já tem um backup?'),
       buildImportButton()
     )
@@ -65,38 +67,37 @@ function buildWelcome() {
 }
 
 function buildDashboard(cefrLevel, lextaleScore, decks, dueToday, newCount, streak) {
-  const headerText = lextaleScore != null
-    ? `Nível ${cefrLevel.toUpperCase()} · Score LexTALE ${Math.round(lextaleScore)}%`
-    : `Nível ${cefrLevel.toUpperCase()}`;
+  const hasDecks = decks.length > 0;
+  const studyHref = hasDecks ? '#/review' : '#/decks';
+  const studyLabel = hasDecks ? 'Iniciar revisão' : 'Carregar deck';
 
   return el('div', {},
-    el('section', { class: 'card-hero' },
-      el('h2', {}, headerText),
+    el('section', { class: 'hero' },
+      el('span', { class: 'hero-label' }, 'A revisar hoje'),
+      el('div', { class: 'hero-num mono' }, String(dueToday)),
+      el('p', { class: 'hero-sub' },
+        'Nível ', el('span', { class: 'mono' }, cefrLevel.toUpperCase()),
+        lextaleScore != null ? [' · Score ', el('span', { class: 'mono' }, `${Math.round(lextaleScore)}%`)] : null
+      ),
       el('a', {
-        href: decks.length === 0 ? '#/decks' : '#/review',
+        href: studyHref,
         class: 'btn btn-primary btn-large btn-block'
-      }, decks.length === 0 ? 'Carregar deck' : 'Iniciar revisão')
+      }, studyLabel)
     ),
 
-    el('div', { class: 'stats-row' },
-      el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(dueToday)),
-        el('span', { class: 'label' }, 'a revisar')
-      ),
-      el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(newCount)),
+    el('div', { class: 'metrics' },
+      el('div', { class: 'metric' },
+        el('span', { class: 'num mono' }, String(newCount)),
         el('span', { class: 'label' }, 'novos')
       ),
-      el('div', { class: 'stat-tile' },
-        el('span', { class: 'value' }, String(streak)),
+      el('div', { class: 'metric' },
+        el('span', { class: 'num mono' }, String(decks.length)),
+        el('span', { class: 'label' }, decks.length === 1 ? 'deck' : 'decks')
+      ),
+      el('div', { class: 'metric' },
+        el('span', { class: 'num mono accent' }, String(streak)),
         el('span', { class: 'label' }, streak === 1 ? 'dia seguido' : 'dias seguidos')
       )
-    ),
-
-    el('nav', { class: 'nav-links' },
-      el('a', { href: '#/decks' }, 'Decks'),
-      el('a', { href: '#/stats' }, 'Estatísticas'),
-      el('a', { href: '#/settings' }, 'Configurações')
     )
   );
 }
@@ -134,17 +135,17 @@ function buildBackupReminder(lastExport) {
     if (Date.now() - dismissed < 14 * 86_400_000) return null;
   }
 
-  return el('div', { class: 'install-banner' },
+  return el('div', { class: 'banner' },
     el('button', {
       class: 'close',
       onclick: (e) => {
         localStorage.setItem('backupReminderDismissed', String(Date.now()));
-        e.target.closest('.install-banner').remove();
+        e.target.closest('.banner').remove();
       }
     }, '×'),
     el('h3', {}, 'Backup local'),
     el('p', {}, `Último export local há ${daysSince(lastExport)} dias.`),
-    el('a', { href: '#/settings', class: 'btn btn-primary', style: { marginTop: '0.5rem' } }, 'Ir para Configurações')
+    el('a', { href: '#/settings', class: 'btn btn-primary' }, 'Configurações')
   );
 }
 
@@ -157,10 +158,10 @@ function isIOS() {
 }
 
 function buildSyncErrorBanner(error) {
-  return el('div', { class: 'install-banner', style: { borderColor: 'var(--danger)' } },
+  return el('div', { class: 'banner banner-danger' },
     el('h3', {}, 'Sync falhou'),
-    el('p', { class: 'muted', style: { fontSize: '0.9rem' } }, error),
-    el('a', { href: '#/settings', class: 'btn btn-primary', style: { marginTop: '0.5rem' } }, 'Resolver')
+    el('p', {}, error),
+    el('a', { href: '#/settings', class: 'btn btn-primary' }, 'Resolver')
   );
 }
 
@@ -168,20 +169,17 @@ function buildInstallBanner(hasData) {
   const dismissed = localStorage.getItem('installBannerDismissed');
   if (dismissed && Date.now() - Number(dismissed) < 7 * 86_400_000) return document.createDocumentFragment();
 
-  return el('div', { class: 'install-banner' },
+  return el('div', { class: 'banner' },
     el('button', {
       class: 'close',
       onclick: (e) => {
         localStorage.setItem('installBannerDismissed', String(Date.now()));
-        e.target.closest('.install-banner').remove();
+        e.target.closest('.banner').remove();
       }
     }, '×'),
     el('h3', {}, 'Instalar como app'),
     el('p', {}, 'Safari → Compartilhar → "Adicionar à Tela de Início".'),
-    hasData ? el('p', { class: 'muted', style: { marginTop: '0.5rem' } },
-      'iOS isola storage entre Safari e PWA instalada. Para preservar progresso, exporte um backup antes (Configurações → Exportar) e importe após instalar.'
-    ) : el('p', { class: 'muted', style: { marginTop: '0.5rem' } },
-      'Recomendado instalar antes do teste de nivelamento para evitar reiniciar.'
-    )
+    hasData ? el('p', {}, 'iOS isola storage entre Safari e PWA instalada. Para preservar progresso, exporte um backup antes (Configurações → Exportar) e importe após instalar.'
+    ) : el('p', {}, 'Recomendado instalar antes do teste de nivelamento para evitar reiniciar.')
   );
 }
