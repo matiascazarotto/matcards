@@ -2,7 +2,7 @@
 
 Spaced repetition para inglês. Vanilla PWA — HTML/CSS/JS, sem build, sem dependências runtime.
 
-Implementa SM-2 (Anki, 1987) para SRS, LexTALE (Lemhöfer & Broersma 2012) para placement CEFR, e Firestore para sync entre dispositivos. Roda offline após primeiro carregamento, instala como app via Safari → "Adicionar à Tela de Início".
+Implementa SM-2 (Anki, 1987) para SRS, teste de nivelamento yes/no estilo LexTALE com wordlist calibrada por CEFR-J Vocabulary Profile, e Firestore para sync entre dispositivos. Roda offline após primeiro carregamento, instala como app via Safari → "Adicionar à Tela de Início".
 
 ## Stack
 
@@ -29,7 +29,7 @@ matcards/
 │   ├── app.js                 Entry + router por hash
 │   ├── db.js                  IndexedDB wrapper + importDeckFromJSON
 │   ├── srs.js                 SM-2 com learning steps
-│   ├── lextale.js             Cálculo de score CEFR
+│   ├── lextale.js             Scoring do placement test (per-level CEFR)
 │   ├── tts.js                 Wrapper Web Speech API
 │   ├── stats.js               Streak, retenção, heatmap
 │   ├── importExport.js        Backup JSON
@@ -38,7 +38,7 @@ matcards/
 │   ├── utils.js               uuid, dates, DOM helpers
 │   └── views/                 home, placement, review, decks, stats, settings
 ├── data/
-│   ├── lextale-items.json     60 palavras (40 reais + 20 inventadas)
+│   ├── lextale-items.json     60 itens (40 reais do CEFR-J + 20 pseudo-palavras LexTALE)
 │   ├── deck-a2.json           60 cards
 │   ├── deck-b1.json           72 cards
 │   └── deck-b2.json           72 cards
@@ -60,12 +60,16 @@ FSRS (algoritmo mais moderno) foi considerado mas exige ~100+ reviews histórica
 
 ## Placement Test
 
-LexTALE adaptado em `data/lextale-items.json`:
+Híbrido: método yes/no do LexTALE (Lemhöfer & Broersma 2012) com wordlist calibrada por nível CEFR. Em `data/lextale-items.json`:
 
-- 60 items: 40 palavras reais + 20 pseudo-palavras
-- Usuário marca "Conheço" ou "Não conheço"
-- Score: `(realCorrect/40 + fakeCorrect/20) × 50` (corrige chutes via pseudo-palavras)
-- Mapeamento CEFR: <40% A2 · 40–59% B1 · 60–79% B2 · 80%+ C1
+- 60 itens: 40 palavras reais (8 por nível A1-C1) + 20 pseudo-palavras
+- Palavras reais vêm do CEFR-J Vocabulary Profile v1.5 (Tono Lab, TUFS) + Octanove C1/C2 v1.0, filtradas pra evitar cognatos PT-EN que inflariam o score de brasileiros
+- Pseudo-palavras são as 20 publicadas no LexTALE original (detectam quem chuta tudo)
+- Score por nível: `adjusted[L] = max(0, hitRate[L] - falseAlarm)`, onde falseAlarm é a fração de pseudo-palavras marcadas como conhecidas
+- Nível CEFR = maior `L` onde `adjusted ≥ 0.5`; defaults pra A1 se ninguém passar
+- Resultado é flagueado como pouco confiável se `falseAlarm > 0.4` (chute excessivo)
+
+Por que esse híbrido em vez do LexTALE puro: o teste original só distingue B2+ de forma confiável (os próprios autores admitem). Os cutoffs A2/B1 que eu tinha antes eram chute. Combinar a mecânica do LexTALE com itens tagueados pelo CEFR-J calibra direto pelos níveis A1-C1.
 
 ## Conteúdo dos decks
 
@@ -139,4 +143,6 @@ Quota free tier Firebase Spark: 50k reads/dia, 20k writes/dia, 1 GB storage.
 
 - Wozniak, P. (1990). *SM-2 algorithm.* SuperMemo Method.
 - Lemhöfer, K., & Broersma, M. (2012). *Introducing LexTALE: A quick and valid Lexical Test for Advanced Learners of English.* Behavior Research Methods, 44(2), 325–343.
+- Tono, Y. (2020). *CEFR-J Vocabulary Profile v1.5.* Tono Laboratory, Tokyo University of Foreign Studies. <https://github.com/openlanguageprofiles/olp-en-cefrj>
+- Octanove Labs. (2020). *Octanove Vocabulary Profile C1/C2 v1.0.* CC BY-SA 4.0.
 - Ebbinghaus, H. (1885). *Über das Gedächtnis* (forgetting curve).
