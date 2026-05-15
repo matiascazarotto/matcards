@@ -133,8 +133,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Picker de ícone matcards</h1>
-    <p class="subtitle">6 variantes em SVG. Cada uma mostrada em 144×144 (tela inicial grande) e 56×56 (tamanho real no iPhone). Veja qual lê melhor no pequeno e me diz o ID.</p>
+    <h1>Picker de ícone matcards · v2</h1>
+    <p class="subtitle">Direção: fundir aesthetic typográfico (V1 m / V3 m_) com referência a flashcard. A e B são os anchors originais; C, D, E adicionam a forma de card. Cada um mostrado em 144×144 e 56×56.</p>
 
     <div class="grid" id="grid"></div>
 
@@ -146,51 +146,26 @@
   <script>
     const VARIANTS = [
       {
-        id: 'V1',
-        name: 'Letra m — mono pura',
-        desc: 'Lowercase m em monospace, accent purple suave sobre preto neutro. Mais Apple-Calculator vibe — máxima legibilidade em qualquer tamanho. Vence o teste de 60×60.',
+        id: 'A',
+        name: 'Anchor · m mono pura',
+        desc: 'Original V1. Lowercase m em monospace, accent purple suave. Sem card. Aqui pra comparação.',
         svg: (size) => `
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <radialGradient id="g${size}_1" cx="80%" cy="15%" r="65%">
+              <radialGradient id="g${size}_A" cx="80%" cy="15%" r="65%">
                 <stop offset="0%" stop-color="#8b7cff" stop-opacity="0.32"/>
                 <stop offset="100%" stop-color="#8b7cff" stop-opacity="0"/>
               </radialGradient>
             </defs>
             <rect width="1024" height="1024" fill="#0a0a0c"/>
-            <rect width="1024" height="1024" fill="url(#g${size}_1)"/>
+            <rect width="1024" height="1024" fill="url(#g${size}_A)"/>
             <text x="512" y="700" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="700" font-weight="500" fill="#a594ff" text-anchor="middle">m</text>
           </svg>`
       },
       {
-        id: 'V2',
-        name: 'Cartão único — letterform',
-        desc: 'Um único card centralizado com m grande dentro, sombra suave. Lê como "card de estudo" diretamente. Identidade clara do que o app faz.',
-        svg: (size) => `
-          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="g${size}_2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#1a1a1e"/>
-                <stop offset="100%" stop-color="#0a0a0c"/>
-              </linearGradient>
-              <filter id="sh${size}_2" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
-                <feOffset dy="8"/>
-                <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
-                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-            <rect width="1024" height="1024" fill="url(#g${size}_2)"/>
-            <g filter="url(#sh${size}_2)">
-              <rect x="232" y="192" width="560" height="640" rx="64" fill="#f4f4f6"/>
-            </g>
-            <text x="512" y="640" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="440" font-weight="500" fill="#8b7cff" text-anchor="middle">m</text>
-          </svg>`
-      },
-      {
-        id: 'V3',
-        name: 'Prompt m_ — terminal',
-        desc: 'Lowercase m seguido de underscore-cursor. Mono. Vibe de IDE/terminal — sinaliza "programador" sem ser literal demais.',
+        id: 'B',
+        name: 'Anchor · prompt m_',
+        desc: 'Original V3. m + cursor underscore terminal. Sem card. Aqui pra comparação.',
         svg: (size) => `
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
             <rect width="1024" height="1024" fill="#0a0a0c"/>
@@ -199,68 +174,71 @@
           </svg>`
       },
       {
-        id: 'V4',
-        name: 'Stack de cards',
-        desc: 'Dois cards offset (atrás translúcido, frente branco) com pequeno m. Refinamento da arte atual — menos rotação, menos shadow, paleta neutra.',
+        id: 'C',
+        name: 'Card outline + m',
+        desc: 'Anchor A com card outline purple atrás. Hint discreto de flashcard — letra continua sendo o foco. Lê tão bem quanto A em 60px.',
         svg: (size) => `
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="g${size}_4" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#181820"/>
-                <stop offset="100%" stop-color="#0a0a0c"/>
-              </linearGradient>
-              <radialGradient id="g${size}_4b" cx="20%" cy="100%" r="70%">
-                <stop offset="0%" stop-color="#8b7cff" stop-opacity="0.18"/>
-                <stop offset="100%" stop-color="#8b7cff" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            <rect width="1024" height="1024" fill="url(#g${size}_4)"/>
-            <rect width="1024" height="1024" fill="url(#g${size}_4b)"/>
-            <g transform="translate(512 512) rotate(-6) translate(-260 -340)">
-              <rect width="520" height="660" rx="60" fill="rgba(255,255,255,0.12)"/>
-            </g>
-            <g transform="translate(512 512) rotate(4) translate(-260 -340)">
-              <rect width="520" height="660" rx="60" fill="#f4f4f6"/>
-              <text x="260" y="430" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="320" font-weight="500" fill="#0a0a0c" text-anchor="middle">m</text>
-            </g>
-          </svg>`
-      },
-      {
-        id: 'V5',
-        name: 'Monograma mc',
-        desc: 'Letras m + c em mono, kerning tight, accent purple. Sinaliza "matcards" com 2 letras. Lê bem em pequeno como uma marca compacta.',
-        svg: (size) => `
-          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="g${size}_5" cx="50%" cy="30%" r="70%">
-                <stop offset="0%" stop-color="#8b7cff" stop-opacity="0.18"/>
+              <radialGradient id="g${size}_C" cx="80%" cy="15%" r="65%">
+                <stop offset="0%" stop-color="#8b7cff" stop-opacity="0.28"/>
                 <stop offset="100%" stop-color="#8b7cff" stop-opacity="0"/>
               </radialGradient>
             </defs>
             <rect width="1024" height="1024" fill="#0a0a0c"/>
-            <rect width="1024" height="1024" fill="url(#g${size}_5)"/>
-            <text x="512" y="680" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="540" font-weight="500" text-anchor="middle" letter-spacing="-30">
-              <tspan fill="#a594ff">m</tspan><tspan fill="#f4f4f6">c</tspan>
-            </text>
+            <rect width="1024" height="1024" fill="url(#g${size}_C)"/>
+            <rect x="240" y="180" width="544" height="664" rx="68" fill="none" stroke="#8b7cff" stroke-width="12" opacity="0.55"/>
+            <text x="512" y="680" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="540" font-weight="500" fill="#a594ff" text-anchor="middle">m</text>
           </svg>`
       },
       {
-        id: 'V6',
-        name: 'Card flip — geométrico',
-        desc: 'Quadrado dobrado em duas metades (uma sólida, uma translúcida) sugerindo flip de card. Abstrato, sem letra. Mais memorável visualmente como marca.',
+        id: 'D',
+        name: 'Card sólido + m',
+        desc: 'Card branco-off centralizado, m mono purple dentro. Estilo Apple Notes — diz "card" diretamente. Inversão de cor cria contraste forte em qualquer tamanho.',
         svg: (size) => `
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="g${size}_6" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#181820"/>
+              <linearGradient id="g${size}_D" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#16161a"/>
                 <stop offset="100%" stop-color="#0a0a0c"/>
               </linearGradient>
             </defs>
-            <rect width="1024" height="1024" fill="url(#g${size}_6)"/>
-            <g transform="translate(512 512)">
-              <path d="M -260 -280 L 0 -280 L 0 280 L -260 280 Z" fill="#8b7cff"/>
-              <path d="M 0 -280 L 260 -280 L 260 280 L 0 280 Z" fill="rgba(255,255,255,0.92)"/>
-              <line x1="0" y1="-280" x2="0" y2="280" stroke="#0a0a0c" stroke-width="6"/>
+            <rect width="1024" height="1024" fill="url(#g${size}_D)"/>
+            <rect x="192" y="160" width="640" height="704" rx="84" fill="#f4f4f6"/>
+            <text x="512" y="680" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="500" font-weight="500" fill="#6d5af0" text-anchor="middle">m</text>
+          </svg>`
+      },
+      {
+        id: 'E',
+        name: 'Card sólido + m_',
+        desc: 'Anchor B (prompt m_) dentro de um card sólido. Combina vibe terminal + flashcard. O cursor purple acende o card.',
+        svg: (size) => `
+          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g${size}_E" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#16161a"/>
+                <stop offset="100%" stop-color="#0a0a0c"/>
+              </linearGradient>
+            </defs>
+            <rect width="1024" height="1024" fill="url(#g${size}_E)"/>
+            <rect x="160" y="200" width="704" height="624" rx="76" fill="#f4f4f6"/>
+            <text x="318" y="608" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="380" font-weight="500" fill="#18181b">m</text>
+            <rect x="586" y="552" width="190" height="50" rx="4" fill="#6d5af0"/>
+          </svg>`
+      },
+      {
+        id: 'F',
+        name: 'Stack minimal + m',
+        desc: 'Dois cards outline (back translúcido, frente em accent purple), m mono na frente. Sinal mais explícito de "flashcards" (plural — implica revisão). Mais detalhe em tamanho pequeno.',
+        svg: (size) => `
+          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#0a0a0c"/>
+            <g transform="translate(512 512) rotate(-6)">
+              <rect x="-260" y="-330" width="520" height="660" rx="62" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="9"/>
+            </g>
+            <g transform="translate(512 512) rotate(4)">
+              <rect x="-260" y="-330" width="520" height="660" rx="62" fill="none" stroke="#8b7cff" stroke-width="11"/>
+              <text x="0" y="60" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="320" font-weight="500" fill="#a594ff" text-anchor="middle">m</text>
             </g>
           </svg>`
       }
