@@ -144,17 +144,18 @@ export async function importDeckFromJSON(json) {
 
   for (const c of json.cards) {
     const cardId = uuid();
-    cardRecords.push({
+    const record = {
       id: cardId,
       deckId,
       type: c.type || 'basic',
       front: c.front || {},
       back: c.back || {},
-      cloze: c.cloze,
       tags: c.tags || [],
       level: c.level || deckRecord.level,
       createdAt: now
-    });
+    };
+    if (c.cloze) record.cloze = c.cloze;
+    cardRecords.push(record);
     reviewRecords.push(initialReview(cardId));
   }
 

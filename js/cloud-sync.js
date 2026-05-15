@@ -29,6 +29,19 @@ function backupDocRef(uid) {
   return doc(getDbSafe(), ROOT_COLLECTION, uid, ...BACKUP_PATH);
 }
 
+function stripUndefined(value) {
+  if (Array.isArray(value)) return value.map(stripUndefined);
+  if (value && typeof value === 'object' && value.constructor === Object) {
+    const out = {};
+    for (const k of Object.keys(value)) {
+      const v = stripUndefined(value[k]);
+      if (v !== undefined) out[k] = v;
+    }
+    return out;
+  }
+  return value;
+}
+
 export async function syncToCloud({ commitMessage } = {}) {
   if (!isConfigured()) return { skipped: true, reason: 'not_configured' };
 
@@ -37,7 +50,7 @@ export async function syncToCloud({ commitMessage } = {}) {
 
   try {
     const user = currentUser() || (await ensureSignedIn());
-    const dump = await exportAll();
+    const dump = stripUndefined(await exportAll());
     dump.syncedAt = Date.now();
     dump.serverTimestamp = serverTimestamp();
     if (commitMessage) dump.message = commitMessage;
