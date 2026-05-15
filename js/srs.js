@@ -108,17 +108,21 @@ function reviewMature(card, quality, now) {
   }
 
   let intervalDays;
+  let minFloor;
   if (quality === QUALITY.HARD) {
     intervalDays = card.interval * HARD_INTERVAL_MULT;
+    minFloor = card.interval + 1;
     card.ease = Math.max(MIN_EASE, card.ease - 0.15);
   } else if (quality === QUALITY.GOOD) {
     intervalDays = card.interval * card.ease;
+    minFloor = card.interval + 2;
   } else {
     intervalDays = card.interval * card.ease * EASY_INTERVAL_MULT;
+    minFloor = card.interval + 3;
     card.ease = card.ease + 0.15;
   }
 
-  card.interval = Math.max(1, Math.round(intervalDays));
+  card.interval = Math.max(minFloor, Math.ceil(intervalDays));
   card.repetitions += 1;
   card.state = 'review';
   card.dueDate = now + card.interval * DAY_MS;
@@ -136,11 +140,14 @@ export function previewIntervals(r) {
   }
 
   if (r.state === 'review') {
+    const hardDays = Math.max(r.interval + 1, Math.ceil(r.interval * HARD_INTERVAL_MULT));
+    const goodDays = Math.max(r.interval + 2, Math.ceil(r.interval * r.ease));
+    const easyDays = Math.max(r.interval + 3, Math.ceil(r.interval * r.ease * EASY_INTERVAL_MULT));
     return {
       again: '< 1 min',
-      hard: fmt(Math.max(1, r.interval * HARD_INTERVAL_MULT) * DAY_MS),
-      good: fmt(Math.max(1, r.interval * r.ease) * DAY_MS),
-      easy: fmt(Math.max(1, r.interval * r.ease * EASY_INTERVAL_MULT) * DAY_MS)
+      hard: fmt(hardDays * DAY_MS),
+      good: fmt(goodDays * DAY_MS),
+      easy: fmt(easyDays * DAY_MS)
     };
   }
 
