@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matcards-v8';
+const CACHE_NAME = 'matcards-v9';
 
 const APP_SHELL = [
   './',
@@ -29,9 +29,12 @@ const APP_SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './data/lextale-items.json',
+  './data/deck-a1.json',
   './data/deck-a2.json',
   './data/deck-b1.json',
-  './data/deck-b2.json'
+  './data/deck-b2.json',
+  './data/deck-false-friends-pt-en.json',
+  './data/recommended-decks.json'
 ];
 
 self.addEventListener('install', (event) => {

@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "matcards-tools",
+  "description": "Dev-only scripts pra matcards (converters, icon render, dedup). Não é runtime do app.",
+  "devDependencies": {
+    "adm-zip": "^0.5.16",
+    "sql.js": "^1.10.3"
+  }
+}

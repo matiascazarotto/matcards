@@ -1,0 +1,143 @@
+{
+  "_schema": "matcards-recommended-decks v1",
+  "_doc": "Registry de decks AnkiWeb curados pro currículo. Snapshot manual (AnkiWeb não tem API). Atualizar revisitando cada deck quando rating/downloads variarem >20%. Quality gate filtra entradas com snapshot abaixo dos thresholds.",
+  "qualityGate": {
+    "minRating": 4.0,
+    "minRatingCount": 50,
+    "minDownloads": 1000
+  },
+  "decks": [
+    {
+      "key": "4000ew-book1",
+      "name": "4000 Essential English Words — Book 1",
+      "tracks": ["a-foundation"],
+      "level": "a1",
+      "estCards": 600,
+      "why": "Padrão-ouro de vocab graduado (Paul Nation). Definições simples + exemplos. Foundation pra namorada (trilha A, fase 1).",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=4000+essential+english+words+book+1",
+        "preferredId": null,
+        "_note": "Múltiplas uploads existem. Comparar ratings + downloads no AnkiWeb antes de escolher."
+      },
+      "snapshot": null
+    },
+    {
+      "key": "4000ew-book2",
+      "name": "4000 Essential English Words — Book 2",
+      "tracks": ["a-foundation"],
+      "level": "a2",
+      "estCards": 600,
+      "why": "Continuação do Book 1. Trilha A fase 2.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=4000+essential+english+words+book+2",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "4000ew-book3",
+      "name": "4000 Essential English Words — Book 3",
+      "tracks": ["a-foundation", "b-foundation"],
+      "level": "b1",
+      "estCards": 600,
+      "why": "Ponte A2→B1. Trilha A fase 3 ou trilha B fase 1 (se você travar abaixo de B2).",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=4000+essential+english+words+book+3",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "4000ew-book4-5",
+      "name": "4000 Essential English Words — Book 4-5",
+      "tracks": ["b-foundation"],
+      "level": "b2",
+      "estCards": 1200,
+      "why": "Vocab intermediário-avançado. Trilha B fase 1-2.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=4000+essential+english+words",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "4000ew-book6",
+      "name": "4000 Essential English Words — Book 6",
+      "tracks": ["b-foundation"],
+      "level": "c1",
+      "estCards": 600,
+      "why": "Livro mais alto da série. Trilha B fase 3 (ponte B2→C1).",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=4000+essential+english+words+book+6",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "phave-150",
+      "name": "PHaVE List — Top 150 Phrasal Verbs",
+      "tracks": ["b-foundation"],
+      "level": "b1",
+      "estCards": 150,
+      "why": "Phrasal verbs academicamente curados (Garnier & Schmitt 2015). Cobre ~85% de phrasal verb tokens em corpus de inglês. Prioritário pra brasileiros — PT não tem o padrão.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=PHaVE+phrasal+verbs",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "phrasal-top30",
+      "name": "Top 30 Essential Phrasal Verbs",
+      "tracks": ["a-foundation"],
+      "level": "a2",
+      "estCards": 30,
+      "why": "Subset PHaVE com os 30 mais frequentes/transparentes. Pra namorada na fase 2.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=phrasal+verbs+a2",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "collocations-intermediate",
+      "name": "English Collocations in Use — Intermediate",
+      "tracks": ["b-foundation"],
+      "level": "b1",
+      "estCards": 500,
+      "why": "Collocations Cambridge. 'make a decision' vs 'do a decision' — erro que marca não-nativo mais que vocab. Trilha B fase 1.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=English+Collocations+in+Use",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "idioms-top100",
+      "name": "Top 100 English Idioms",
+      "tracks": ["b-foundation"],
+      "level": "b2",
+      "estCards": 100,
+      "why": "Idioms de alta frequência (corpus-based). Trilha B fase 2.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=english+idioms",
+        "preferredId": null
+      },
+      "snapshot": null
+    },
+    {
+      "key": "ngsl-1000",
+      "name": "NGSL — New General Service List Top 1000",
+      "tracks": ["a-foundation"],
+      "level": "a1",
+      "estCards": 1000,
+      "why": "Top 1000 palavras por frequência (Browne 2013). Cobre ~80% de texto corrente. Trilha A fase 1 em paralelo ao 4000EW.",
+      "ankiweb": {
+        "searchUrl": "https://ankiweb.net/shared/decks?search=NGSL",
+        "preferredId": null,
+        "_note": "Alternativa: baixar CSV direto em ngsl.org e converter via tools/csv-to-matcards.js."
+      },
+      "snapshot": null
+    }
+  ]
+}
