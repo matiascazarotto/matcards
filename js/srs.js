@@ -9,6 +9,7 @@
  */
 
 export const LEARNING_STEPS_MIN = [1, 10];
+export const HARD_LEARNING_MIN = 6;
 export const GRADUATING_INTERVAL_DAYS = 1;
 export const EASY_GRADUATING_INTERVAL_DAYS = 4;
 export const MIN_EASE = 1.3;
@@ -60,8 +61,12 @@ function reviewLearning(card, quality, now) {
 
   if (quality === QUALITY.HARD) {
     card.state = wasLapsed ? 'lapsed' : 'learning';
-    const step = Math.min(card.step, LEARNING_STEPS_MIN.length - 1);
-    card.dueDate = now + LEARNING_STEPS_MIN[step] * MIN_MS;
+    if (card.step === 0) {
+      card.dueDate = now + HARD_LEARNING_MIN * MIN_MS;
+    } else {
+      const step = Math.min(card.step, LEARNING_STEPS_MIN.length - 1);
+      card.dueDate = now + LEARNING_STEPS_MIN[step] * MIN_MS;
+    }
     return card;
   }
 
@@ -142,10 +147,11 @@ export function previewIntervals(r) {
   const stepIdx = Math.min(r.step, LEARNING_STEPS_MIN.length - 1);
   const nextStepIdx = Math.min(r.step + 1, LEARNING_STEPS_MIN.length - 1);
   const gradInterval = r.step + 1 >= LEARNING_STEPS_MIN.length ? GRADUATING_INTERVAL_DAYS * DAY_MS : LEARNING_STEPS_MIN[nextStepIdx] * MIN_MS;
+  const hardMin = r.step === 0 ? HARD_LEARNING_MIN : LEARNING_STEPS_MIN[stepIdx];
 
   return {
     again: `${LEARNING_STEPS_MIN[0]} min`,
-    hard: `${LEARNING_STEPS_MIN[stepIdx]} min`,
+    hard: `${hardMin} min`,
     good: fmt(gradInterval),
     easy: fmt(EASY_GRADUATING_INTERVAL_DAYS * DAY_MS)
   };
