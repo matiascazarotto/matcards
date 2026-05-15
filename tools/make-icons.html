@@ -45,29 +45,6 @@
       const offset = (size - safe) / 2;
       const radius = maskable ? 0 : size * 0.2;
 
-      const grad = ctx.createLinearGradient(0, 0, size, size);
-      grad.addColorStop(0, '#7c5cff');
-      grad.addColorStop(1, '#5a3ddd');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      if (radius > 0) {
-        ctx.moveTo(radius, 0);
-        ctx.arcTo(size, 0, size, size, radius);
-        ctx.arcTo(size, size, 0, size, radius);
-        ctx.arcTo(0, size, 0, 0, radius);
-        ctx.arcTo(0, 0, size, 0, radius);
-      } else {
-        ctx.rect(0, 0, size, size);
-      }
-      ctx.closePath();
-      ctx.fill();
-
-      const cx = size / 2;
-      const cy = size / 2;
-      const cardW = safe * 0.45;
-      const cardH = safe * 0.58;
-      const cardRadius = cardW * 0.1;
-
       function roundRect(x, y, w, h, r) {
         ctx.beginPath();
         ctx.moveTo(x + r, y);
@@ -78,35 +55,44 @@
         ctx.closePath();
       }
 
-      // Back card (rotated left)
+      // Background: neutral near-black with optional rounded corners
       ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate((-12 * Math.PI) / 180);
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = size * 0.04;
-      ctx.shadowOffsetY = size * 0.01;
-      ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      roundRect(-cardW / 2, -cardH / 2, cardW, cardH, cardRadius);
-      ctx.fill();
-      ctx.restore();
+      if (radius > 0) {
+        roundRect(0, 0, size, size, radius);
+        ctx.clip();
+      }
+      ctx.fillStyle = '#0a0a0c';
+      ctx.fillRect(0, 0, size, size);
 
-      // Front card (rotated right)
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate((8 * Math.PI) / 180);
-      ctx.shadowColor = 'rgba(0,0,0,0.35)';
-      ctx.shadowBlur = size * 0.05;
-      ctx.shadowOffsetY = size * 0.015;
-      ctx.fillStyle = '#ffffff';
-      roundRect(-cardW / 2, -cardH / 2, cardW, cardH, cardRadius);
-      ctx.fill();
-      ctx.shadowColor = 'transparent';
+      // Soft purple radial glow in upper-right
+      const glow = ctx.createRadialGradient(
+        size * 0.8, size * 0.15, 0,
+        size * 0.8, size * 0.15, size * 0.65
+      );
+      glow.addColorStop(0, 'rgba(139, 124, 255, 0.28)');
+      glow.addColorStop(1, 'rgba(139, 124, 255, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, size, size);
 
-      ctx.fillStyle = '#5a3ddd';
+      // Card outline (proportional to safe area). SVG coords: x=240, y=180, w=544, h=664 of 1024.
+      const cardX = offset + safe * 0.234;
+      const cardY = offset + safe * 0.176;
+      const cardW = safe * 0.531;
+      const cardH = safe * 0.648;
+      const cardR = safe * 0.066;
+
+      ctx.strokeStyle = 'rgba(139, 124, 255, 0.55)';
+      ctx.lineWidth = safe * 0.0117;
+      roundRect(cardX, cardY, cardW, cardH, cardR);
+      ctx.stroke();
+
+      // Letter 'm' in monospace. SVG: x=512 center, y=680 baseline, font-size=540
+      ctx.fillStyle = '#a594ff';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = `800 ${cardH * 0.68}px -apple-system, Helvetica, sans-serif`;
-      ctx.fillText('A', 0, cardH * 0.04);
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = `500 ${safe * 0.527}px ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Code", monospace`;
+      ctx.fillText('m', size / 2, offset + safe * 0.664);
+
       ctx.restore();
     }
 
