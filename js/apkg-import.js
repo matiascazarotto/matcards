@@ -33,6 +33,16 @@ async function ensureJSZip() {
   return _jszipReady;
 }
 
+export function detectLevelFromName(name) {
+  const n = String(name || '').toLowerCase();
+  if (/\ba1\b|book\s*1\b|1k\b|essential\s*1\b|beginner|elementary|basic\b|starter/.test(n)) return 'a1';
+  if (/\ba2\b|book\s*2\b|2k\b|pre.?intermediate/.test(n)) return 'a2';
+  if (/\bb1\b|book\s*3\b|3k\b|intermediate\b/.test(n)) return 'b1';
+  if (/\bb2\b|book\s*4\b|4k\b|upper.?intermediate/.test(n)) return 'b2';
+  if (/\bc[12]\b|book\s*[56]\b|[56]k\b|advanced|proficient|expert/.test(n)) return 'c1';
+  return 'b1';
+}
+
 export async function parseApkg(file, opts = {}) {
   const [SQL, JSZip] = await Promise.all([ensureSql(), ensureJSZip()]);
 
@@ -44,7 +54,7 @@ export async function parseApkg(file, opts = {}) {
   const dbBytes = await collEntry.async('uint8array');
   const db = new SQL.Database(dbBytes);
 
-  const level = (opts.level || 'b1').toLowerCase();
+  const level = (opts.level || detectLevelFromName(file.name)).toLowerCase();
   const cards = [];
   let skipped = 0;
 

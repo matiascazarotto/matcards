@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matcards-v10';
+const CACHE_NAME = 'matcards-v11';
 
 const APP_SHELL = [
   './',

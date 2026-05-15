@@ -3,13 +3,10 @@ import { db } from '../db.js';
 import { importDeckFromJSON } from '../db.js';
 import { parseApkg } from '../apkg-import.js';
 
-const LEVELS = ['a1', 'a2', 'b1', 'b2', 'c1'];
-
 export async function renderDecks(app) {
   const container = el('div', { class: 'view' });
   app.appendChild(container);
 
-  let apkgLevel = 'b1';
   let apkgStatus = '';
 
   await refresh();
@@ -101,15 +98,7 @@ export async function renderDecks(app) {
 
     container.appendChild(el('div', { class: 'card' },
       el('p', { class: 'muted', style: { fontSize: '0.85rem', margin: '0 0 0.75rem 0' } },
-        'Baixe um deck Anki (.apkg) da AnkiWeb ou de outra fonte e importe aqui. O converter roda localmente no app — nada sai do seu device.'
-      ),
-      el('div', { class: 'row', style: { gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' } },
-        el('span', { style: { fontSize: '0.85rem', opacity: '0.8' } }, 'Nível CEFR:'),
-        ...LEVELS.map((lv) => el('button', {
-          class: lv === apkgLevel ? 'btn btn-primary' : 'btn',
-          style: { minHeight: '32px', padding: '0.3rem 0.7rem', fontSize: '0.8rem' },
-          onclick: () => { apkgLevel = lv; refresh(); }
-        }, lv.toUpperCase()))
+        'Baixe um .apkg da AnkiWeb ou outra fonte e selecione aqui. Converter roda local — nada sai do device. Nível CEFR é detectado pelo nome do arquivo (book 1-6, beginner/intermediate/advanced, A1-C2) ou cai pra B1.'
       ),
       el('label', {
         class: 'btn btn-primary',
@@ -121,13 +110,13 @@ export async function renderDecks(app) {
           onchange: async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            apkgStatus = `Convertendo "${file.name}"... (libs ~800KB no primeiro uso)`;
+            apkgStatus = `Convertendo "${file.name}"... (libs ~750KB no primeiro uso)`;
             refresh();
             try {
-              const deckJson = await parseApkg(file, { level: apkgLevel });
+              const deckJson = await parseApkg(file);
               if (!deckJson.cards.length) throw new Error('Nenhum card encontrado no .apkg');
               await importDeckFromJSON(deckJson);
-              apkgStatus = `✓ "${deckJson.name}" importado — ${deckJson.cards.length} cards.`;
+              apkgStatus = `✓ "${deckJson.name}" importado — ${deckJson.cards.length} cards, nível ${deckJson.level.toUpperCase()}.`;
               await refresh();
             } catch (err) {
               apkgStatus = `Falha: ${err.message}`;
