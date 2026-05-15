@@ -2,7 +2,7 @@ import { el, clear } from '../utils.js';
 import { db } from '../db.js';
 import { exportAll, importAll, downloadJSON } from '../importExport.js';
 import { getVoices } from '../tts.js';
-import { isConfigured as isFirebaseConfigured, currentUser, isAnonymous, linkWithGoogle, signInWithGoogle, signOutCurrent } from '../firebase.js';
+import { isConfigured as isFirebaseConfigured, currentUser } from '../firebase.js';
 import { syncToCloud, restoreFromCloud, generateRecoveryPhrase } from '../cloud-sync.js';
 
 export async function renderSettings(app) {
@@ -189,14 +189,8 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
   }
 
   const user = currentUser();
-  const anon = isAnonymous();
-  const email = user?.email || null;
 
-  const statusLine = !user
-    ? 'Conectando.'
-    : anon
-      ? 'Anônima · ativa'
-      : `Vinculada com Google · ${email}`;
+  const statusLine = user ? 'Backup automático · ativo' : 'Conectando.';
 
   const lastSyncText = cloudLastSyncError
     ? `Falha no último sync: ${cloudLastSyncError}`
@@ -211,9 +205,9 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
     el('p', {}, statusLine),
     el('p', { class: 'muted', style: { color: cloudLastSyncError ? 'var(--danger)' : 'var(--text-dim)' } }, lastSyncText),
 
-    anon ? el('div', { class: 'muted', style: { background: 'var(--bg)', padding: '0.6rem 0.8rem', borderRadius: '8px', marginTop: '0.5rem', fontSize: '0.9rem' } },
-      'Para usar em outro dispositivo, vincule sua conta Google. Login com o mesmo Google no outro device restaura os dados.'
-    ) : null,
+    el('div', { class: 'muted', style: { background: 'var(--bg)', padding: '0.6rem 0.8rem', borderRadius: '8px', marginTop: '0.5rem', fontSize: '0.9rem' } },
+      'Cada instalação tem um UID anônimo próprio com backup automático na nuvem. Para migrar entre dispositivos, use Exportar / Importar acima.'
+    ),
 
     el('div', { class: 'settings-row', style: { marginTop: '0.5rem' } },
       el('label', { for: 'cloudEnabled' }, 'Auto-sync após cada sessão'),
@@ -227,73 +221,38 @@ function buildCloudSection({ cloudEnabled, cloudLastSyncAt, cloudLastSyncError, 
       el('button', {
         class: 'btn btn-primary',
         onclick: async (e) => {
-          e.target.disabled = true;
-          e.target.textContent = 'Sincronizando.';
-          const result = await syncToCloud({ commitMessage: 'Manual sync' });
-          if (result.ok) alert('Sync concluído.');
-          else if (result.skipped) alert(`Sync ignorado: ${result.reason}`);
-          else alert('Falha: ' + result.error);
-          refresh();
-        }
-      }, 'Sincronizar'),
-
-      anon ? el('button', {
-        class: 'btn btn-success',
-        onclick: async (e) => {
-          e.target.disabled = true;
-          e.target.textContent = '...';
+          const btn = e.currentTarget;
+          btn.disabled = true;
+          btn.textContent = 'Sincronizando.';
           try {
-            await linkWithGoogle();
-            await syncToCloud({ commitMessage: 'Linked Google account' });
-            alert('Conta vinculada. Use o mesmo Google nos outros dispositivos.');
+            const result = await syncToCloud({ commitMessage: 'Manual sync' });
+            if (result.ok) alert('Sync concluído.');
+            else if (result.skipped) alert(`Sync ignorado: ${result.reason}`);
+            else alert('Falha: ' + result.error);
             refresh();
           } catch (err) {
-            if (err.code === 'auth/credential-already-in-use') {
-              if (confirm('Esse Google já está vinculado a outra conta. Fazer login nela e restaurar os dados? Dados locais atuais serão substituídos.')) {
-                try {
-                  await signInWithGoogle();
-                  await restoreFromCloud();
-                  alert('Restaurado. Recarregando.');
-                  location.reload();
-                  return;
-                } catch (e2) {
-                  alert('Falha ao restaurar: ' + (e2.message || e2));
-                }
-              }
-            } else {
-              alert('Falha: ' + (err.message || err));
-            }
-            e.target.disabled = false;
-            e.target.textContent = 'Vincular Google';
+            alert('Falha: ' + (err.message || err));
+            btn.disabled = false;
+            btn.textContent = 'Sincronizar';
           }
         }
-      }, 'Vincular Google') : el('button', {
-        class: 'btn btn-warning',
-        onclick: async () => {
-          if (!confirm('Desvincular Google deste dispositivo. Dados na nuvem permanecem intactos. Continuar?')) return;
-          await signOutCurrent();
-          location.reload();
-        }
-      }, 'Sair'),
+      }, 'Sincronizar'),
 
       el('button', {
         class: 'btn',
         onclick: async (e) => {
-          e.target.disabled = true;
-          e.target.textContent = '...';
+          const btn = e.currentTarget;
+          if (!confirm('Substituir dados locais com a versão da nuvem deste dispositivo. Útil só se o IndexedDB foi limpo mas o UID anônimo sobreviveu. Continuar?')) return;
+          btn.disabled = true;
+          btn.textContent = '...';
           try {
-            if (!confirm('Substituir dados locais com a versão da nuvem. Recomendado exportar local antes. Continuar?')) {
-              e.target.disabled = false;
-              e.target.textContent = 'Restaurar da nuvem';
-              return;
-            }
             await restoreFromCloud();
             alert('Restaurado. Recarregando.');
             location.reload();
           } catch (err) {
-            alert('Falha: ' + err.message);
-            e.target.disabled = false;
-            e.target.textContent = 'Restaurar da nuvem';
+            alert('Falha: ' + (err.message || err));
+            btn.disabled = false;
+            btn.textContent = 'Restaurar da nuvem';
           }
         }
       }, 'Restaurar da nuvem')

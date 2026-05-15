@@ -97,7 +97,7 @@ Para Firebase Hosting alternativo: `firebase deploy --only hosting`.
 
 1. Criar projeto em https://console.firebase.google.com
 2. Add Web app → copiar `firebaseConfig` → substituir em `js/firebase.js`
-3. Authentication → Sign-in method → habilitar **Anonymous** e **Google**
+3. Authentication → Sign-in method → habilitar **Anonymous**
 4. Authentication → Settings → Authorized domains → adicionar domínio de produção (`matiascazarotto.github.io`)
 5. Firestore → Create database (production mode, região `southamerica-east1`)
 6. Firestore rules: deploy via `firebase deploy --only firestore:rules` (rules em `firestore.rules`)
@@ -106,9 +106,11 @@ API key do Firebase Web SDK é pública por design ([ref](https://firebase.googl
 
 ## Sync na nuvem
 
-Auto-sync após cada sessão concluída. Cada usuário tem UID Firebase (anônimo ou Google). Backup em `users/{uid}/backup/current` como documento único. Conflito resolvido via last-writer-wins.
+Auto-sync após cada sessão concluída. Cada instalação ganha um UID Firebase anônimo e grava o backup em `users/{uid}/backup/current` como documento único. Last-writer-wins entre escritas concorrentes do mesmo UID.
 
-Cross-device: vincular conta anônima a Google. Mesmo Google em outro device = mesma UID = mesmos dados.
+Google linking foi removido: `signInWithPopup` não funciona em PWA standalone no iOS (Safari bloqueia popups que não saem direto de um click handler), e implementar `signInWithRedirect` introduz uma navegação para fora da PWA que quebra a experiência. **Cross-device é via Export/Import manual** — JSON salvo no iCloud Drive ou enviado entre devices.
+
+Sync anônimo continua útil como backup automático por instalação (recovery se IndexedDB for limpo mas UID sobreviver).
 
 Quota free tier Firebase Spark: 50k reads/dia, 20k writes/dia, 1 GB storage.
 

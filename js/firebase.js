@@ -1,31 +1,13 @@
 /**
- * Firebase wrapper.
- *
- * SETUP (one-time, done by app deployer):
- * 1. Go to https://console.firebase.google.com → "Add project" → name it
- * 2. Add web app → copy the firebaseConfig object → paste below (replacing FIREBASE_CONFIG)
- * 3. Authentication → Sign-in method → Enable "Anonymous" (and optionally "Google")
- * 4. Firestore Database → Create database (production mode)
- * 5. Firestore Rules → paste:
- *    rules_version = '2';
- *    service cloud.firestore {
- *      match /databases/{database}/documents {
- *        match /users/{userId}/{document=**} {
- *          allow read, write: if request.auth != null && request.auth.uid == userId;
- *        }
- *      }
- *    }
- * 6. Authentication → Settings → Authorized domains → add your Netlify URL + localhost
+ * Firebase wrapper. Auth anônimo + Firestore para backup automático por
+ * instalação. Cross-device é via Export/Import manual — popups do Google
+ * não funcionam em PWA standalone no iOS, então Google linking foi removido.
  */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
   getAuth,
   signInAnonymously,
-  GoogleAuthProvider,
-  signInWithPopup,
-  linkWithPopup,
-  signOut,
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import {
@@ -124,31 +106,6 @@ export function ensureSignedIn(timeoutMs = 10000) {
 export function currentUser() {
   if (!_auth) return null;
   return _auth.currentUser;
-}
-
-export function isAnonymous() {
-  const u = currentUser();
-  return u ? u.isAnonymous : false;
-}
-
-export async function linkWithGoogle() {
-  ensureInit();
-  if (!_auth.currentUser) throw new Error('Não autenticado');
-  const provider = new GoogleAuthProvider();
-  const result = await linkWithPopup(_auth.currentUser, provider);
-  return result.user;
-}
-
-export async function signInWithGoogle() {
-  ensureInit();
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(_auth, provider);
-  return result.user;
-}
-
-export async function signOutCurrent() {
-  ensureInit();
-  await signOut(_auth);
 }
 
 export { doc, setDoc, getDoc, deleteDoc, serverTimestamp };

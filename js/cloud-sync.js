@@ -1,11 +1,8 @@
 /**
- * Cloud sync via Firestore.
- *
- * Each user gets a unique uid (anonymous or linked Google). Backup is stored at:
- *   /users/{uid}/backup/current
- *
- * After each completed session, app pushes the full backup. Pull on demand
- * (e.g., on a new device after Google sign-in).
+ * Cloud sync via Firestore. Cada instalação ganha um UID Firebase anônimo
+ * e grava backup em /users/{uid}/backup/current. Auto-push após cada sessão.
+ * Pull on demand (Configurações → Restaurar da nuvem), útil só dentro da
+ * mesma instalação. Cross-device é via Export/Import manual.
  */
 
 import { db } from './db.js';
