@@ -165,3 +165,25 @@ export async function importDeckFromJSON(json) {
 
   return deckRecord;
 }
+
+export async function deleteDeckCascade(deckId) {
+  const cards = await db.getByIndex('cards', 'deckId', deckId);
+  const cardIds = cards.map((c) => c.id);
+
+  const dbi = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = dbi.transaction(['decks', 'cards', 'reviews'], 'readwrite');
+    const reviews = tx.objectStore('reviews');
+    const cardsStore = tx.objectStore('cards');
+    const decks = tx.objectStore('decks');
+
+    for (const cid of cardIds) {
+      reviews.delete(cid);
+      cardsStore.delete(cid);
+    }
+    decks.delete(deckId);
+
+    tx.oncomplete = () => resolve({ deckId, cardCount: cardIds.length });
+    tx.onerror = () => reject(tx.error);
+  });
+}

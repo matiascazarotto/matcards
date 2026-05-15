@@ -1,6 +1,6 @@
 import { el, clear, icon } from '../utils.js';
 import { db } from '../db.js';
-import { importDeckFromJSON } from '../db.js';
+import { importDeckFromJSON, deleteDeckCascade } from '../db.js';
 import { parseApkg } from '../apkg-import.js';
 
 export async function renderDecks(app) {
@@ -25,6 +25,8 @@ export async function renderDecks(app) {
     const available = [
       { id: 'deck-a1-builtin', file: 'data/deck-a1.json', name: 'Fundação absoluta', level: 'a1' },
       { id: 'deck-a2-builtin', file: 'data/deck-a2.json', name: 'Vocabulário básico', level: 'a2' },
+      { id: 'deck-survival-60-builtin', file: 'data/deck-survival-60.json', name: 'Sobrevivência — 60 frases', level: 'a2' },
+      { id: 'deck-irregular-50-builtin', file: 'data/deck-irregular-50.json', name: 'Verbos irregulares — 50 essenciais', level: 'a2' },
       { id: 'deck-b1-builtin', file: 'data/deck-b1.json', name: 'Phrasal verbs & collocations', level: 'b1' },
       { id: 'deck-b2-builtin', file: 'data/deck-b2.json', name: 'Idioms & vocabulário avançado', level: 'b2' },
       { id: 'deck-false-friends-pt-en-builtin', file: 'data/deck-false-friends-pt-en.json', name: 'False friends PT-EN', level: 'b1' }
@@ -49,7 +51,21 @@ export async function renderDecks(app) {
           el('div', { class: 'row-main' },
             el('div', { class: 'row-title' }, deck.name),
             el('div', { class: 'row-sub' }, subParts.join(' · '))
-          )
+          ),
+          el('button', {
+            class: 'btn',
+            style: { minHeight: '36px', padding: '0.5rem 0.85rem', fontSize: '0.82rem', opacity: '0.7' },
+            onclick: async () => {
+              const msg = `Remover "${deck.name}"? Apaga ${cards.length} cards e o progresso desse deck. Irreversível.`;
+              if (!confirm(msg)) return;
+              try {
+                await deleteDeckCascade(deck.id);
+                await refresh();
+              } catch (err) {
+                alert('Falha ao remover: ' + err.message);
+              }
+            }
+          }, 'Remover')
         ));
       });
       container.appendChild(list);

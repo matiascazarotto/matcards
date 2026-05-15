@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matcards-v11';
+const CACHE_NAME = 'matcards-v12';
 
 const APP_SHELL = [
   './',
@@ -34,7 +34,9 @@ const APP_SHELL = [
   './data/deck-a2.json',
   './data/deck-b1.json',
   './data/deck-b2.json',
-  './data/deck-false-friends-pt-en.json'
+  './data/deck-false-friends-pt-en.json',
+  './data/deck-survival-60.json',
+  './data/deck-irregular-50.json'
 ];
 
 self.addEventListener('install', (event) => {
