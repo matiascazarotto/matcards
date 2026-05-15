@@ -127,18 +127,12 @@ function buildImportButton() {
 }
 
 function buildBackupReminder(lastExport) {
+  if (!lastExport || daysSince(lastExport) < 14) return null;
+
   if (localStorage.getItem('backupReminderDismissed')) {
     const dismissed = Number(localStorage.getItem('backupReminderDismissed'));
     if (Date.now() - dismissed < 14 * 86_400_000) return null;
   }
-
-  const noBackup = !lastExport;
-  const oldBackup = lastExport && daysSince(lastExport) >= 14;
-  if (!noBackup && !oldBackup) return null;
-
-  const msg = noBackup
-    ? 'Você ainda não exportou nenhum backup local. Recomendado caso o sync na nuvem falhe.'
-    : `Último export local há ${daysSince(lastExport)} dias.`;
 
   return el('div', { class: 'install-banner' },
     el('button', {
@@ -149,7 +143,7 @@ function buildBackupReminder(lastExport) {
       }
     }, '×'),
     el('h3', {}, 'Backup local'),
-    el('p', {}, msg),
+    el('p', {}, `Último export local há ${daysSince(lastExport)} dias.`),
     el('a', { href: '#/settings', class: 'btn btn-primary', style: { marginTop: '0.5rem' } }, 'Ir para Configurações')
   );
 }
