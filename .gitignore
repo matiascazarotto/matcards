@@ -26,3 +26,7 @@ build/
 
 # Backups locais do user (não devem ir pro repo)
 *-backup-*.json
+
+# .apkg sources — convertidos via tools/apkg-to-matcards.js pra data/deck-*.json
+# Binários grandes (centenas de MB com áudio/imagem) não vão pro repo
+data/apkg/
