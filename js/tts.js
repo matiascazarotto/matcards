@@ -10,6 +10,9 @@ import { db } from './db.js';
 
 let _voices = [];
 let _warmedUp = false;
+let _preferredVoiceName = '';
+let _ttsRate = 0.9;
+let _settingsPromise = null;
 
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   const loadVoices = () => { _voices = speechSynthesis.getVoices(); };
@@ -17,12 +20,38 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   speechSynthesis.onvoiceschanged = loadVoices;
 }
 
+function loadSettings() {
+  if (_settingsPromise) return _settingsPromise;
+  _settingsPromise = (async () => {
+    try {
+      _preferredVoiceName = (await db.getSetting('ttsVoice', '')) || '';
+      const rate = await db.getSetting('ttsRate', 0.9);
+      if (typeof rate === 'number' && !Number.isNaN(rate)) _ttsRate = rate;
+    } catch (err) {
+      console.warn('[tts] settings load failed:', err);
+    }
+  })();
+  return _settingsPromise;
+}
+
+if (typeof window !== 'undefined') loadSettings();
+
 export function isSupported() {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
 }
 
 export function getVoices() {
   return _voices;
+}
+
+export async function setTtsRate(rate) {
+  _ttsRate = Number(rate);
+  await db.setSetting('ttsRate', _ttsRate);
+}
+
+export async function setTtsVoice(name) {
+  _preferredVoiceName = name || '';
+  await db.setSetting('ttsVoice', _preferredVoiceName);
 }
 
 export function warmupTTS() {
@@ -38,10 +67,9 @@ export function warmupTTS() {
   }
 }
 
-async function pickVoice() {
-  const preferred = await db.getSetting('ttsVoice', '');
-  if (preferred) {
-    const v = _voices.find((vo) => vo.name === preferred);
+function pickVoice() {
+  if (_preferredVoiceName) {
+    const v = _voices.find((vo) => vo.name === _preferredVoiceName);
     if (v) return v;
   }
   return (
@@ -53,20 +81,24 @@ async function pickVoice() {
   );
 }
 
-export async function speak(text, opts = {}) {
+// Síncrono de propósito: iOS Safari (especialmente PWA standalone) exige que
+// speechSynthesis.speak() seja chamado no mesmo tick do gesto de usuário, sem
+// awaits intermediários. Settings são pré-carregadas em memória pra evitar
+// hit no IDB no caminho crítico.
+export function speak(text, opts = {}) {
   if (!isSupported() || !text) return;
 
   try {
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(String(text));
-    const voice = await pickVoice();
+    const voice = pickVoice();
     if (voice) {
       utterance.voice = voice;
       utterance.lang = voice.lang;
     } else {
       utterance.lang = 'en-US';
     }
-    utterance.rate = opts.rate ?? (await db.getSetting('ttsRate', 0.9));
+    utterance.rate = opts.rate ?? _ttsRate;
     utterance.pitch = opts.pitch ?? 1;
     utterance.volume = opts.volume ?? 1;
     speechSynthesis.speak(utterance);

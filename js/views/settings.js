@@ -1,7 +1,7 @@
 import { el, clear } from '../utils.js';
 import { db } from '../db.js';
 import { exportAll, importAll, downloadJSON } from '../importExport.js';
-import { getVoices } from '../tts.js';
+import { getVoices, setTtsRate, setTtsVoice } from '../tts.js';
 import { isConfigured as isFirebaseConfigured, currentUser } from '../firebase.js';
 import { syncToCloud, restoreFromCloud, generateRecoveryPhrase } from '../cloud-sync.js';
 
@@ -71,7 +71,7 @@ export async function renderSettings(app) {
         el('input', {
           type: 'range', id: 'ttsRate', min: '0.5', max: '1.5', step: '0.1', value: ttsRate,
           oninput: (e) => {
-            db.setSetting('ttsRate', Number(e.target.value));
+            setTtsRate(Number(e.target.value));
             e.target.previousElementSibling.textContent = `Velocidade · ${Number(e.target.value).toFixed(1)}x`;
           }
         })
@@ -157,7 +157,7 @@ export async function renderSettings(app) {
     const enVoices = voices.filter((v) => v.lang.startsWith('en'));
     const select = el('select', {
       id: 'ttsVoice',
-      onchange: (e) => db.setSetting('ttsVoice', e.target.value)
+      onchange: (e) => setTtsVoice(e.target.value)
     });
     select.appendChild(el('option', { value: '' }, 'Padrão do sistema'));
     enVoices.forEach((v) => {
